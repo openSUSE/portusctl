@@ -1,0 +1,15 @@
+{
+	"ImportPath": "github.com/openSUSE/portusctl",
+	"GoVersion": "devel-a9afa4e933f3",
+	"GodepVersion": "v75",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "gopkg.in/urfave/cli.v1",
+			"Comment": "v1.20.0",
+			"Rev": "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
+		}
+	]
+}
