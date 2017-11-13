@@ -1,4 +1,4 @@
-# portusctl
+# portusctl [![Build Status](https://travis-ci.org/openSUSE/portusctl.svg?branch=master)](https://travis-ci.org/openSUSE/portusctl)
 
 Under construction. To do:
 
@@ -7,50 +7,7 @@ Under construction. To do:
 - Validate method
 - Refactoring
 - Polish exec command
-
-## Status of the API
-
-| Endpoint                   | Portus | portusctl | observations                                  |
-|----------------------------|--------|-----------|-----------------------------------------------|
-| user #index                | Yes    | Yes       |                                               |
-| user #create               | Yes    | Yes       |                                               |
-| user #destroy              | Yes    | Yes        |                                               |
-| user #show                 | Yes    | Yes       |                                               |
-| user #update               | Yes    | No        |                                               |
-| application token #index   | Yes    | Yes       |                                               |
-| application token #create  | Yes    | Yes       |                                               |
-| application token #destroy | Yes    | No        |                                               |
-| registries #index          | Yes    | Yes       |                                               |
-| registries #create         | No     | No        |                                               |
-| registries #destroy        | No     | No        | unsupported                                   |
-| registries #show           | No     | Yes       |                                               |
-| registries #update         | No     | No        |                                               |
-| teams #index               | Yes    | Yes       |                                               |
-| teams #create              | Yes    | Yes       |                                               |
-| teams #destroy             | No     | No        | unsupported                                   |
-| teams #show                | Yes    | Yes       |                                               |
-| teams #update              | No     | No        |                                               |
-| teams namespaces           | Yes    | Yes       |                                               |
-| teams members              | Yes    | Yes       |                                               |
-| namespaces #index          | Yes    | Yes       |                                               |
-| namespaces #create         | Yes    | Yes       |                                               |
-| namespaces #destroy        | No     | No        | unsupported                                   |
-| namespaces #show           | Yes    | Yes       |                                               |
-| namespaces #update         | No     | No        |                                               |
-| namespaces repositories    | Yes    | Yes       |                                               |
-| repositories #index        | Yes    | Yes       |                                               |
-| repositories #create       | No     | No        |                                               |
-| repositories #destroy      | No     | No        | unsupported                                   |
-| repositories #show         | Yes    | Yes       |                                               |
-| repositories #update       | No     | No        |                                               |
-| repositories tags          | Yes    | Yes       |                                               |
-| repositories tags groupped | Yes    | Yes       | maybe as an option to the tags in portusctl ? |
-| repositories show tag      | Yes    | Yes       |                                               |
-| tags #index                | Yes    | Yes       |                                               |
-| tags #create               | No     | No        | unsupported                                   |
-| tags #destroy              | No     | No        | unsupported                                   |
-| tags #show                 | Yes    | Yes       |                                               |
-| tags #update               | No     | No        | unsupported                                   |
+- Coverage
 
 Missing resources on both sides:
 
@@ -63,6 +20,53 @@ Final considerations:
 
 - What about typeahead kind of queries ? Should they be put in some special
   explore command ?
+
+## Development
+
+### Integration testing
+
+We use [bats](https://github.com/sstephenson/bats.git] for integration testing
+and `docker-compose`. There is a specific target on the `Makefile` called
+`test-integration`, which will run the test integration suite:
+
+```
+$ make test-integration
+```
+
+This will setup a Portus instance running in the background as a Docker
+container (through `docker-compose`), and then it will run the tests targeting
+this Portus instance.
+
+There are some nice flags when running integration tests:
+
+- `SKIP_ENV_TESTS`: when set to true, it will skip the process of bringing your
+  Portus instance up. You should use this flag when you want to re-use a
+  previous environment for your tests (bear in mind that between each test case
+  the database will be cleaned up). It is set to false by default.
+- `TEARDOWN_TESTS`: when set to true, it will destroy the Portus instance at the
+  end. It is set to true by default.
+- `TESTS`: you can define a list of tests to be run. This way you can specify
+  that you want to run only a specific subset of tests instead of the whole suite.
+
+Taken that into account, you should perform the following when running tests for
+the first time:
+
+```
+$ make test-integration TEARDOWN_TESTS=
+```
+
+This way you will have the Portus instance available and it won't be destroyed
+at the end. Then, for successive runs you can perform:
+
+```
+$ make test-integration SKIP_ENV_TESTS=1 TEARDOWN_TESTS=
+```
+
+If only you care about a specific test (e.g. the `test/users.bats` file):
+
+```
+$ make test-integration TESTS=users SKIP_ENV_TESTS=1 TEARDOWN_TESTS=
+```
 
 ## License
 

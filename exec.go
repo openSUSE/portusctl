@@ -37,7 +37,7 @@ func vendorBasePath() string {
 
 func execCmd(c *cli.Context) error {
 	if len(c.Args()) == 0 {
-		return errors.New("You have to provide the command to be executed!")
+		return errors.New("you have to provide the command to be executed")
 	}
 
 	cmd := exec.Command("bundle", append([]string{"exec"}, c.Args()...)...)
@@ -49,8 +49,6 @@ func execCmd(c *cli.Context) error {
 	cmd.Stdin = os.Stdin
 	cmd.Stderr = os.Stderr
 
-	if err := cmd.Run(); err != nil {
-		return err
-	}
-	return nil
+	err := cmd.Run()
+	return err
 }

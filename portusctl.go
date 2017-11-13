@@ -21,14 +21,19 @@ import (
 	"gopkg.in/urfave/cli.v1"
 )
 
-// Returns the version string
-func version() string {
-	const (
-		major = 0
-		minor = 1
-		patch = 0
-	)
-	return fmt.Sprintf("%v.%v.%v", major, minor, patch)
+var gitCommit, version string
+
+func versionString() string {
+	str := version
+
+	if gitCommit != "" {
+		str += fmt.Sprintf(" with commit '%v'", gitCommit)
+	}
+	return fmt.Sprintf(`%v.
+Copyright (C) 2017 Miquel Sabaté Solà <msabate@suse.com>
+License GPLv3+: GNU GPL version 3 or later "<http://gnu.org/licenses/gpl.html>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.`, str)
 }
 
 func main() {
@@ -39,8 +44,8 @@ func main() {
 	app.Name = "portusctl"
 	app.Usage = "Client for your Portus instance"
 	app.UsageText = "portusctl <command> [arguments...]"
-	app.Version = version()
 	app.HideHelp = true
+	app.Version = versionString()
 
 	app.CommandNotFound = func(context *cli.Context, cmd string) {
 		fmt.Printf("Incorrect usage: command '%v' does not exist.\n\n", cmd)
