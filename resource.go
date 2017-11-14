@@ -37,10 +37,10 @@ const (
 var requestTimeout = 15 * time.Second
 
 var subresources = map[string][]string{
-	"namespaces":   []string{"repositories"},
-	"repositories": []string{"tags"},
-	"teams":        []string{"namespaces", "members"},
-	"users":        []string{"application_tokens"},
+	"namespaces":   {"repositories"},
+	"repositories": {"tags"},
+	"teams":        {"namespaces", "members"},
+	"users":        {"application_tokens"},
 }
 
 type argumentRequirement struct {
@@ -56,25 +56,25 @@ type argumentRequirement struct {
 // TODO: restrict the methods that can be used (e.g. a team cannot be destroyed
 // as of now)
 var bodyArguments = map[string]argumentRequirement{
-	"users": argumentRequirement{
+	"users": {
 		required: []string{"username", "email", "password"},
 		optional: []string{"display_name"},
 		prefix:   "user",
 		name:     "user",
 	},
-	"application_tokens": argumentRequirement{
+	"application_tokens": {
 		required: []string{"id", "application"},
 		resource: "users",
 		name:     "application token",
 		returned: "plain_tokens",
 	},
-	"teams": argumentRequirement{
+	"teams": {
 		required: []string{"name"},
 		optional: []string{"description"},
 		name:     "team",
 		returned: "teams",
 	},
-	"namespaces": argumentRequirement{
+	"namespaces": {
 		required: []string{"name", "team"},
 		optional: []string{"description"},
 		name:     "namespace",
@@ -135,10 +135,14 @@ func handleCode(response *http.Response) error {
 		}
 		return errors.New(strings.TrimRight(str, "\n"))
 	} else if code == http.StatusUnauthorized || code == http.StatusForbidden {
+		key := "errors"
+		if code == http.StatusUnauthorized {
+			key = "error"
+		}
 		target := make(map[string]string)
 		defer response.Body.Close()
 		json.NewDecoder(response.Body).Decode(&target)
-		return errors.New(target["error"])
+		return errors.New(target[key])
 	} else if code == http.StatusNotFound {
 		return errors.New("Resource not found")
 	} else if code == http.StatusMethodNotAllowed {
@@ -220,7 +224,7 @@ func generateBody(resource string, args []string) ([]byte, string, error) {
 		b, e = json.Marshal(map[string]map[string]string{require.prefix: values})
 	}
 	if e != nil {
-		return nil, path, fmt.Errorf("Internal error: ", e)
+		return nil, path, fmt.Errorf("Internal error: %v", e)
 	}
 	return b, path, nil
 }
@@ -250,12 +254,16 @@ func create(resource string, args []string) error {
 }
 
 func delete(resource string, args []string) error {
-	prefix := bodyArguments[resource].resource
 	if len(args) != 1 {
 		return fmt.Errorf("Expecting exactly 1 argument, %v given", len(args))
 	}
 
-	res, err := request("DELETE", prefix, resource, args, nil)
+	r, ok := bodyArguments[resource]
+	if !ok {
+		return fmt.Errorf("Resource '%v' cannot be removed", resource)
+	}
+
+	res, err := request("DELETE", r.resource, resource, args, nil)
 	if err != nil {
 		return err
 	}

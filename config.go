@@ -42,13 +42,13 @@ var globalConfig config
 // shortcuts. This map can be accessed with the first character as the key.
 var availableResources = map[string][]string{
 	// TODO
-	"app": []string{"application_tokens", "application_token", "at"}, // TODO: not on GET
-	"nam": []string{"namespaces", "namespace", "n"},
-	"rep": []string{"repositories", "repository", "r"},
-	"reg": []string{"registries", "registry", "re"},
-	"tag": []string{"tags", "tag", "ta"},
-	"tea": []string{"teams", "team", "t"},
-	"use": []string{"users", "user", "u"},
+	"app": {"application_tokens", "application_token", "at"}, // TODO: not on GET
+	"nam": {"namespaces", "namespace", "n"},
+	"rep": {"repositories", "repository", "r"},
+	"reg": {"registries", "registry", "re"},
+	"tag": {"tags", "tag", "ta"},
+	"tea": {"teams", "team", "t"},
+	"use": {"users", "user", "u"},
 }
 
 // setFlags sets the global configuration with the values provided by the
@@ -97,7 +97,7 @@ func checkResource(resource string, ctx *cli.Context) (string, error) {
 			return bet[0], nil
 		}
 	}
-	return "", fmt.Errorf("Unknown resource '%v'\n", resource)
+	return "", fmt.Errorf("unknown resource '%v'", resource)
 }
 
 // resourceDecorator decorates the given function with some checks on the
@@ -108,11 +108,11 @@ func resourceDecorator(f func(string, []string) error) func(*cli.Context) error 
 			return err
 		}
 
-		if resource, err := checkResource(ctx.Args().Get(0), ctx); err == nil {
+		resource, err := checkResource(ctx.Args().Get(0), ctx)
+		if err == nil {
 			args := ctx.Args()
-			return f(resource, args[1:len(args)])
-		} else {
-			return err
+			return f(resource, args[1:])
 		}
+		return err
 	}
 }

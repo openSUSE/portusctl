@@ -1,5 +1,38 @@
 language: go
 
+sudo: required
+services:
+- docker
+
 go:
   - 1.9.x
   - master
+
+env:
+  DOCKER_COMPOSE_VERSION: 1.14.0
+
+before_install:
+  # Test dependencies
+  - go get -u github.com/vbatts/git-validation
+  - go get -u github.com/golang/lint/golint
+
+  # Install bats.
+  - git clone https://github.com/sstephenson/bats.git
+  - cd bats
+  - sudo ./install.sh /usr/local
+  - cd .. && rm -rf bats
+
+  # Install docker-compose. Instructions taken from
+  #   https://elliot.land/post/using-docker-compose-on-travis-ci
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+
+  # Docker image. TODO: remove this with a proper image
+  - git clone https://github.com/SUSE/Portus.git
+  - cd Portus
+  - docker build -t opensuse/portus:development .
+  - cd .. && rm -rf Portus
+
+script:
+  - make ci
