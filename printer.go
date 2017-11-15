@@ -58,6 +58,10 @@ func printList(elements interface{}) {
 func prettyPrint(kind int, body []byte, single bool) error {
 	var bodyStr string
 
+	if len(body) == 0 || string(body) == "null" {
+		return nil
+	}
+
 	if single {
 		bodyStr = "[" + string(body) + "]"
 	} else {

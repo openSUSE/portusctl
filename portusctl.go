@@ -80,7 +80,7 @@ func main() {
 		{
 			Name:   "create",
 			Usage:  "Create the given resource",
-			Action: resourceDecorator(create),
+			Action: resourceDecorator(create, postAction),
 			ArgsUsage: `<resource> [arguments...]
 
 Where <resource> is the resource that you want to create.`,
@@ -88,7 +88,7 @@ Where <resource> is the resource that you want to create.`,
 		{
 			Name:   "delete",
 			Usage:  "Delete the given resource",
-			Action: resourceDecorator(delete),
+			Action: resourceDecorator(delete, deleteAction),
 			ArgsUsage: `<resource> [arguments...]
 
 Where <resource> is the resource that you want to delete.`,
@@ -118,7 +118,7 @@ Portus instance. The successive arguments will be passed also to this command.`,
 		{
 			Name:   "get",
 			Usage:  "Fetches info for the given resource",
-			Action: resourceDecorator(get),
+			Action: resourceDecorator(get, getAction),
 			ArgsUsage: `<resource> [arguments...]
 
 Where <resource> is the resource that you want to fetch.`,
@@ -134,7 +134,7 @@ Where <resource> is the resource that you want to fetch.`,
 		{
 			Name:   "update",
 			Usage:  "Update the given resource",
-			Action: resourceDecorator(update),
+			Action: resourceDecorator(update, putAction),
 			ArgsUsage: `<resource> [arguments...]
 
 Where <resource> is the resource that you want to update.`,

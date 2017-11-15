@@ -1,4 +1,5 @@
 portusctl
+main.test
 ./test/portus/tmp
 ./test/portus/tmp/*
 ./test/portus/tmp/**/*

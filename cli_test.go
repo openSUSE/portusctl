@@ -93,12 +93,16 @@ func TestExtractArgumentsUsers(t *testing.T) {
 	var err error
 
 	user := newResource(kindUser)
+	user.action = postAction
 
 	captured := capture.All(func() {
 		_, err = extractArguments(&user, []string{"name=msabate", "email=lala@example.org"})
 	})
 	msg := "The following mandatory fields are missing: username, password"
-	if err == nil || err.Error() != msg {
+	if err == nil {
+		t.Fatalf("Expected '%v', got nil", msg)
+	}
+	if err.Error() != msg {
 		t.Fatalf("Expected '%v', got '%v'", msg, err.Error())
 	}
 	msg = "Ignoring the following keys: name\n\n"
@@ -112,6 +116,7 @@ func TestExtractArgumentsUsersOK(t *testing.T) {
 	var err error
 
 	user := newResource(kindUser)
+	user.action = postAction
 
 	captured := capture.All(func() {
 		args, err = extractArguments(&user,
@@ -136,6 +141,7 @@ func TestExtractArgumentsUsersOptional(t *testing.T) {
 	var err error
 
 	user := newResource(kindUser)
+	user.action = postAction
 
 	captured := capture.All(func() {
 		args, err = extractArguments(&user,
@@ -162,6 +168,7 @@ func TestExtractArgumentsWithID(t *testing.T) {
 	var err error
 
 	at := newResource(kindApplicationToken)
+	at.action = postAction
 
 	captured := capture.All(func() {
 		args, err = extractArguments(&at, []string{"application=lala", "id=2"})
@@ -178,4 +185,44 @@ func TestExtractArgumentsWithID(t *testing.T) {
 	if at.prefix != "users/2" {
 		t.Fatalf("Wrong prefix: expected 'users/2'; got '%v'", at.prefix)
 	}
+}
+
+func TestExtractArgumentsNoArgumentsToPut(t *testing.T) {
+	var err error
+
+	user := newResource(kindUser)
+	user.action = putAction
+
+	captured := capture.All(func() {
+		_, err = extractArguments(&user, []string{"name=msabate"})
+	})
+	msg := "Ignoring the following keys: name\n\n"
+	if string(captured.Stdout) != msg {
+		t.Fatalf("Expected '%v', got '%v'", msg, string(captured.Stdout))
+	}
+
+	msg = "You have to provide at least one of the following arguments: username, email, password, display_name"
+	if err.Error() != msg {
+		t.Fatalf("Expected '%v', got '%v'", msg, err.Error())
+	}
+}
+
+func TestExtractArgumentsPut(t *testing.T) {
+	var args map[string]string
+	var err error
+
+	user := newResource(kindUser)
+	user.action = putAction
+
+	captured := capture.All(func() {
+		args, err = extractArguments(&user, []string{"username=msabate"})
+	})
+	if string(captured.Stdout) != "" {
+		t.Fatalf("Expected no message printed, got '%v'", string(captured.Stdout))
+	}
+	if err != nil {
+		t.Fatalf("Expected no error, got '%v'", err.Error())
+	}
+
+	testMap(t, args, [][]string{{"username", "msabate"}})
 }

@@ -66,7 +66,8 @@ function setup() {
 
     # Note that we no longer have a first line being "Created ... successfully"
     # Moreover, it doesn't complain about the useless `lala` argument.
-    [[ "${lines[0]}" =~ "ID    Username    Email    Admin    NamespaceID    DisplayName" ]]
+    [[ "${lines[0]}" =~ "ID    Username    Email               Admin    NamespaceID    DisplayName" ]]
+    [[ "${lines[1]}" =~ "2     msabate     example@test.lan    false    3" ]]
 
     # No lines from deleting a resource.
     portusctl -q delete user 2

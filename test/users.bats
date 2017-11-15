@@ -71,3 +71,19 @@ function setup() {
     [ $status -eq 0 ]
     [[ "${lines[0]}" =~ '[{"id":1,"username":"admin","email":"admin@example.local"' ]]
 }
+
+@test "updating a user" {
+    portusctl create user username=msabate email=example@test.lan password=12341234
+    [ $status -eq 0 ]
+
+    portusctl update user 2 display_name=Miquel email=something@test.lan
+    [ $status -eq 0 ]
+    [[ "${lines[1]}" =~ "ID    Username    Email                 Admin    NamespaceID    DisplayName" ]]
+    [[ "${lines[2]}" =~ "2     msabate     something@test.lan    false    3              Miquel" ]]
+
+    # Now quiet
+    portusctl -q update user 2 email=example@test.lan
+    [ $status -eq 0 ]
+    [[ "${lines[0]}" =~ "ID    Username    Email               Admin    NamespaceID    DisplayName" ]]
+    [[ "${lines[1]}" =~ "2     msabate     example@test.lan    false    3              Miquel" ]]
+}

@@ -16,6 +16,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
@@ -35,6 +36,7 @@ const (
 
 // Resource represents a resource as defined by this application.
 type Resource struct {
+	action        int
 	bundler       string
 	kind          int
 	optional      []string
@@ -163,19 +165,21 @@ var availableResources = []Resource{
 	},
 }
 
-func create(resource *Resource, args []string) error {
+// createUpdate is a method to share code between the `create` and the `update`
+// methods.
+func createUpdate(resource *Resource, method string, args, prefix []string) error {
 	b, err := generateBody(resource, args)
 	if err != nil {
 		return err
 	}
 
-	res, err := request("POST", resource.Path(nil), b)
+	res, err := request(method, resource.Path(prefix), b)
 	if err != nil {
 		return err
 	}
 
 	if !globalConfig.quiet {
-		fmt.Printf("Created '%v' successfully!\n\n", resource.String())
+		fmt.Printf("Updated '%v' successfully!\n\n", resource.String())
 	}
 
 	body, _ := ioutil.ReadAll(res.Body)
@@ -186,6 +190,10 @@ func create(resource *Resource, args []string) error {
 		return prettyPrint(resource.ReturnedKind(), body, true)
 	}
 	return nil
+}
+
+func create(resource *Resource, args []string) error {
+	return createUpdate(resource, "POST", args, nil)
 }
 
 func delete(resource *Resource, args []string) error {
@@ -233,5 +241,10 @@ func get(resource *Resource, args []string) error {
 }
 
 func update(resource *Resource, args []string) error {
-	return nil
+	if len(args) < 2 {
+		return errors.New("not enough parameters")
+	}
+
+	prefix := []string{args[0]}
+	return createUpdate(resource, "PUT", args[1:], prefix)
 }

@@ -2,7 +2,6 @@
 
 Under construction. To do:
 
-- Update method
 - Disallow some actions
 - Validate method
 - Refactoring

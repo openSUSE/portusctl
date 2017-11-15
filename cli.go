@@ -29,6 +29,13 @@ const (
 	jsonFmt
 )
 
+const (
+	getAction = iota
+	postAction
+	putAction
+	deleteAction
+)
+
 type config struct {
 	user   string
 	token  string
@@ -125,8 +132,16 @@ func extractArguments(resource *Resource, args []string) (map[string]string, err
 		fmt.Printf("Ignoring the following keys: %v\n\n", strings.Join(finalUnknown, ", "))
 	}
 	if len(resource.required) != 0 {
-		return nil, fmt.Errorf("The following mandatory fields are missing: %v",
-			strings.Join(resource.required, ", "))
+		if resource.action == postAction {
+			return nil, fmt.Errorf("The following mandatory fields are missing: %v",
+				strings.Join(resource.required, ", "))
+		}
+		if len(values) == 0 {
+			arguments := append(resource.required, resource.optional...)
+			return nil, fmt.Errorf(
+				"You have to provide at least one of the following arguments: %v",
+				strings.Join(arguments, ", "))
+		}
 	}
 	super := findResourceByID(resource.superresource)
 	if super != nil && id != "" {
@@ -154,7 +169,7 @@ func checkResource(resource string, ctx *cli.Context) (*Resource, error) {
 
 // resourceDecorator decorates the given function with some checks on the
 // arguments and flags.
-func resourceDecorator(f func(*Resource, []string) error) func(*cli.Context) error {
+func resourceDecorator(f func(*Resource, []string) error, action int) func(*cli.Context) error {
 	return func(ctx *cli.Context) error {
 		if err := setFlags(ctx); err != nil {
 			return err
@@ -163,6 +178,7 @@ func resourceDecorator(f func(*Resource, []string) error) func(*cli.Context) err
 		resource, err := checkResource(ctx.Args().Get(0), ctx)
 		if err == nil {
 			args := ctx.Args()
+			resource.action = action
 			return f(resource, args[1:])
 		}
 		return err
