@@ -68,6 +68,11 @@ func main() {
 			Usage:  "The user of the Portus REST API",
 			EnvVar: "PORTUSCTL_API_USER",
 		},
+		cli.BoolFlag{
+			Name:   "quiet, q",
+			Usage:  "Prevent portusctl from outputting general information",
+			EnvVar: "PORTUSCTL_QUIET",
+		},
 	}
 
 	// TODO: add validate command

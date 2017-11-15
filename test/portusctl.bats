@@ -59,3 +59,17 @@ function setup() {
     [ $status -eq 1 ]
     [[ "${lines[0]}" =~ "Authorization fails" ]]
 }
+
+@test "quiet flag" {
+    portusctl -q create user username=msabate lala=this email=example@test.lan password=12341234
+    [ $status -eq 0 ]
+
+    # Note that we no longer have a first line being "Created ... successfully"
+    # Moreover, it doesn't complain about the useless `lala` argument.
+    [[ "${lines[0]}" =~ "ID    Username    Email    Admin    NamespaceID    DisplayName" ]]
+
+    # No lines from deleting a resource.
+    portusctl -q delete user 2
+    [ $status -eq 0 ]
+    [[ "${#lines[@]}" -eq 0 ]]
+}

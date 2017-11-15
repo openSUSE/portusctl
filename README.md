@@ -3,10 +3,13 @@
 Under construction. To do:
 
 - Update method
+- Disallow some actions
 - Validate method
 - Refactoring
 - Polish exec command
 - Coverage
+- Man pages
+- RPM spec
 
 Missing resources on both sides:
 
@@ -27,7 +30,7 @@ not recommended. Instead, use the default make target:
 
 ```
 $ make
-# or the equivalent to `make portusctl`
+# or the equivalent `make portusctl`
 ```
 
 With this command, `portusctl` will be built with the desired build flags and

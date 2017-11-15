@@ -174,8 +174,9 @@ func create(resource *Resource, args []string) error {
 		return err
 	}
 
-	// TODO: quiet flag ?
-	fmt.Printf("Created '%v' successfully!\n\n", resource.String())
+	if !globalConfig.quiet {
+		fmt.Printf("Created '%v' successfully!\n\n", resource.String())
+	}
 
 	body, _ := ioutil.ReadAll(res.Body)
 	switch globalConfig.format {
@@ -203,8 +204,9 @@ func delete(resource *Resource, args []string) error {
 	body, _ := ioutil.ReadAll(res.Body)
 	fmt.Printf("%v\n", string(body))
 
-	// TODO: quiet flag ?
-	fmt.Printf("Deleted '%v' successfully!\n", resource.String())
+	if !globalConfig.quiet {
+		fmt.Printf("Deleted '%v' successfully!\n", resource.String())
+	}
 	return nil
 }
 

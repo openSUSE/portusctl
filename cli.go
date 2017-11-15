@@ -34,6 +34,7 @@ type config struct {
 	token  string
 	server string
 	format int
+	quiet  bool
 }
 
 // globalConfig contains the configuration needed to perform requests to the
@@ -59,6 +60,9 @@ func setFlags(ctx *cli.Context) error {
 		fmt.Println("")
 		return errors.New("You have the deliver the URL of the Portus server")
 	}
+
+	globalConfig.quiet = ctx.GlobalBool("quiet")
+
 	switch ctx.String("format") {
 	case "json":
 		globalConfig.format = jsonFmt
@@ -117,7 +121,7 @@ func extractArguments(resource *Resource, args []string) (map[string]string, err
 		}
 	}
 
-	if len(finalUnknown) != 0 {
+	if len(finalUnknown) != 0 && !globalConfig.quiet {
 		fmt.Printf("Ignoring the following keys: %v\n\n", strings.Join(finalUnknown, ", "))
 	}
 	if len(resource.required) != 0 {
