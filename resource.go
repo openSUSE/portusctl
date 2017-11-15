@@ -16,254 +16,187 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/url"
 	"path/filepath"
 	"strings"
-	"time"
-	"unicode"
-	"unicode/utf8"
 )
 
 const (
-	pathPrefix = "/api/v1"
+	kindApplicationToken = iota + 1
+	kindNamespace
+	kindPlainToken
+	kindRepository
+	kindRegistry
+	kindTag
+	kindTeam
+	kindUser
 )
 
-var requestTimeout = 15 * time.Second
-
-var subresources = map[string][]string{
-	"namespaces":   {"repositories"},
-	"repositories": {"tags"},
-	"teams":        {"namespaces", "members"},
-	"users":        {"application_tokens"},
+// Resource represents a resource as defined by this application.
+type Resource struct {
+	bundler       string
+	kind          int
+	optional      []string
+	prefix        string
+	required      []string
+	returnedKind  int
+	synonims      []string
+	superresource int
+	subresources  []string
 }
 
-type argumentRequirement struct {
-	required []string
-	optional []string
-	prefix   string
-	resource string
-	name     string
-	returned string
+// String returns a pretty version of the resource.
+func (r *Resource) String() string {
+	var singular string
+
+	if len(r.synonims) == 2 {
+		singular = r.synonims[0]
+	} else {
+		singular = r.synonims[1]
+	}
+
+	return strings.Replace(singular, "_", " ", -1)
 }
 
-// TODO: more OO when refactoring
-// TODO: restrict the methods that can be used (e.g. a team cannot be destroyed
-// as of now)
-var bodyArguments = map[string]argumentRequirement{
-	"users": {
-		required: []string{"username", "email", "password"},
-		optional: []string{"display_name"},
-		prefix:   "user",
-		name:     "user",
-	},
-	"application_tokens": {
-		required: []string{"id", "application"},
-		resource: "users",
-		name:     "application token",
-		returned: "plain_tokens",
-	},
-	"teams": {
-		required: []string{"name"},
-		optional: []string{"description"},
-		name:     "team",
-		returned: "teams",
-	},
-	"namespaces": {
-		required: []string{"name", "team"},
-		optional: []string{"description"},
-		name:     "namespace",
-		returned: "namespaces",
-	},
+// FullName returns the name to be used for URL paths representing this
+// resource.
+func (r *Resource) FullName() string {
+	return r.synonims[len(r.synonims)-1]
 }
 
-func buildRequest(method, prefix, resource string, args []string, body []byte) (*http.Request, error) {
-	u, _ := url.Parse(globalConfig.server)
-	u.Path = filepath.Join(pathPrefix, prefix, resource)
+// Path returns the full URL path of the given resource with the given extra
+// arguments. The resource prefix will also be considered when building this
+// path.
+func (r *Resource) Path(args []string) string {
+	path := filepath.Join(pathPrefix, r.prefix, r.FullName())
 	for _, v := range args {
-		u.Path = filepath.Join(u.Path, v)
+		path = filepath.Join(path, v)
 	}
-
-	reader := bytes.NewBuffer(body)
-	req, err := http.NewRequest(method, u.String(), reader)
-	if err != nil {
-		return nil, fmt.Errorf("Could not build request: %v", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("PORTUS-AUTH", fmt.Sprintf("%s:%s", globalConfig.user, globalConfig.token))
-	return req, nil
+	return path
 }
 
-func request(method, prefix, resource string, args []string, body []byte) (*http.Response, error) {
-	req, err := buildRequest(method, prefix, resource, args, body)
-	if err != nil {
-		return nil, err
+// ReturnedKind returns the type being returned on create actions for the
+// current resource. Use this instead of directly accessing the `returnedKind`
+// attribute of Resource.
+func (r *Resource) ReturnedKind() int {
+	if r.returnedKind < kindApplicationToken {
+		r.returnedKind = r.kind
 	}
-
-	client := http.Client{Timeout: requestTimeout}
-	res, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := handleCode(res); err != nil {
-		return nil, err
-	}
-	return res, nil
+	return r.returnedKind
 }
 
-func handleCode(response *http.Response) error {
-	code := response.StatusCode
-
-	if code == http.StatusBadRequest {
-		target := make(map[string]map[string][]string)
-		defer response.Body.Close()
-
-		json.NewDecoder(response.Body).Decode(&target)
-		str := ""
-		for k, list := range target["errors"] {
-			str += k + ":\n"
-			for _, e := range list {
-				r, n := utf8.DecodeRuneInString(e)
-				str += "  - " + string(unicode.ToUpper(r)) + e[n:] + "\n"
-			}
+// TODO: maybe we should turn that into a map or a proper slice
+func findResourceByID(id int) *Resource {
+	for _, res := range availableResources {
+		if res.kind == id {
+			return &res
 		}
-		return errors.New(strings.TrimRight(str, "\n"))
-	} else if code == http.StatusUnauthorized || code == http.StatusForbidden {
-		key := "errors"
-		if code == http.StatusUnauthorized {
-			key = "error"
-		}
-		target := make(map[string]string)
-		defer response.Body.Close()
-		json.NewDecoder(response.Body).Decode(&target)
-		return errors.New(target[key])
-	} else if code == http.StatusNotFound {
-		return errors.New("Resource not found")
-	} else if code == http.StatusMethodNotAllowed {
-		return errors.New("Action not allowed on given resource")
 	}
 	return nil
 }
 
-func indexInSlice(ary []string, needle string) int {
-	for i := 0; i < len(ary); i++ {
-		if ary[i] == needle {
-			return i
-		}
+func findResource(resource string) *Resource {
+	if resource == "" {
+		return nil
 	}
-	return -1
-}
 
-func extractArguments(require argumentRequirement, args []string) (map[string]string, string, error) {
-	id := ""
-	values := make(map[string]string)
-	unknown := make(map[string]string)
-	for _, a := range args {
-		keyValue := strings.Split(a, "=")
-		i := indexInSlice(require.required, keyValue[0])
-		if i >= 0 {
-			if keyValue[0] == "id" {
-				id = keyValue[1]
-			} else {
-				values[keyValue[0]] = keyValue[1]
+	for _, res := range availableResources {
+		if res.synonims[0][0] == resource[0] {
+			for _, part := range res.synonims {
+				if part == resource {
+					return &res
+				} else if len(part) > len(resource) {
+					break
+				}
 			}
-			require.required = append(require.required[:i], require.required[i+1:]...)
-		} else {
-			unknown[keyValue[0]] = keyValue[1]
+		} else if res.synonims[0][0] > resource[0] {
+			break
 		}
 	}
-
-	finalUnknown := []string{}
-	for k, v := range unknown {
-		i := indexInSlice(require.optional, k)
-		if i >= 0 {
-			values[k] = v
-		} else {
-			finalUnknown = append(finalUnknown, k)
-		}
-	}
-
-	unkn := strings.Join(finalUnknown, ",")
-	if unkn != "" {
-		fmt.Printf("Ignoring the following keys: %v\n\n", unkn)
-	}
-	mandatory := strings.Join(require.required, ",")
-	if mandatory == "" {
-		path := ""
-		if require.resource != "" && id != "" {
-			path = filepath.Join(require.resource, id)
-		}
-		return values, path, nil
-	}
-	return nil, "", fmt.Errorf("The following mandatory fields are missing: %v", mandatory)
+	return nil
 }
 
-func generateBody(resource string, args []string) ([]byte, string, error) {
-	require, ok := bodyArguments[resource]
-	if !ok {
-		return nil, "", fmt.Errorf("Resource '%v' does not support this action", resource)
-	}
-
-	values, path, err := extractArguments(require, args)
-	if err != nil {
-		return nil, path, err
-	}
-
-	var b []byte
-	var e error
-
-	if require.prefix == "" {
-		b, e = json.Marshal(values)
-	} else {
-		b, e = json.Marshal(map[string]map[string]string{require.prefix: values})
-	}
-	if e != nil {
-		return nil, path, fmt.Errorf("Internal error: %v", e)
-	}
-	return b, path, nil
+var availableResources = []Resource{
+	{
+		// TODO: restrict so it's not used on GET
+		required:      []string{"id", "application"},
+		kind:          kindApplicationToken,
+		returnedKind:  kindPlainToken,
+		superresource: kindUser,
+		synonims:      []string{"at", "application_token", "application_tokens"},
+	},
+	{
+		kind:         kindNamespace,
+		optional:     []string{"description"},
+		required:     []string{"name", "team"},
+		subresources: []string{"repositories"},
+		synonims:     []string{"n", "namespace", "namespaces"},
+	},
+	{
+		kind:         kindRepository,
+		subresources: []string{"tags"},
+		synonims:     []string{"r", "repository", "repositories"},
+	},
+	{
+		kind:     kindRegistry,
+		synonims: []string{"re", "registry", "registries"},
+	},
+	{
+		kind:     kindTag,
+		synonims: []string{"tag", "tags"},
+	},
+	{
+		kind:         kindTeam,
+		optional:     []string{"description"},
+		required:     []string{"name"},
+		subresources: []string{"members", "namespaces"},
+		synonims:     []string{"t", "team", "teams"},
+	},
+	{
+		bundler:      "user",
+		kind:         kindUser,
+		optional:     []string{"display_name"},
+		required:     []string{"username", "email", "password"},
+		subresources: []string{"application_tokens"},
+		synonims:     []string{"u", "user", "users"},
+	},
 }
 
-func create(resource string, args []string) error {
-	b, path, err := generateBody(resource, args)
+func create(resource *Resource, args []string) error {
+	b, err := generateBody(resource, args)
 	if err != nil {
 		return err
 	}
 
-	res, err := request("POST", path, resource, nil, b)
+	res, err := request("POST", resource.Path(nil), b)
 	if err != nil {
 		return err
 	}
 
 	// TODO: quiet flag ?
-	fmt.Printf("Created '%v' successfully!\n\n", bodyArguments[resource].name)
+	fmt.Printf("Created '%v' successfully!\n\n", resource.String())
 
 	body, _ := ioutil.ReadAll(res.Body)
 	switch globalConfig.format {
 	case jsonFmt:
 		fmt.Print(string(body))
 	default:
-		return prettyPrint(bodyArguments[resource].returned, body, true)
+		return prettyPrint(resource.ReturnedKind(), body, true)
 	}
 	return nil
 }
 
-func delete(resource string, args []string) error {
+func delete(resource *Resource, args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("Expecting exactly 1 argument, %v given", len(args))
 	}
 
-	r, ok := bodyArguments[resource]
-	if !ok {
-		return fmt.Errorf("Resource '%v' cannot be removed", resource)
+	super := findResourceByID(resource.superresource)
+	if super != nil {
+		resource.prefix = super.FullName()
 	}
-
-	res, err := request("DELETE", r.resource, resource, args, nil)
+	res, err := request("DELETE", resource.Path(args), nil)
 	if err != nil {
 		return err
 	}
@@ -271,39 +204,17 @@ func delete(resource string, args []string) error {
 	fmt.Printf("%v\n", string(body))
 
 	// TODO: quiet flag ?
-	fmt.Printf("Deleted '%v' successfully!\n", bodyArguments[resource].name)
+	fmt.Printf("Deleted '%v' successfully!\n", resource.String())
 	return nil
 }
 
-func parseArguments(resource string, args []string) (string, bool, error) {
-	if len(args) > 1 {
-		if val, ok := subresources[resource]; ok {
-			resource = args[1]
-			found := false
-			for _, v := range val {
-				if v == resource {
-					found = true
-					break
-				}
-			}
-			if !found {
-				return resource, false, fmt.Errorf("unknown subresource '%v'", resource)
-			}
-		} else {
-			return resource, false, errors.New("too many given arguments")
-		}
-	}
-
-	return resource, len(args)&1 == 1, nil
-}
-
-func get(resource string, args []string) error {
+func get(resource *Resource, args []string) error {
 	rsrc, single, err := parseArguments(resource, args)
 	if err != nil {
 		return err
 	}
 
-	res, err := request("GET", "", resource, args, nil)
+	res, err := request("GET", resource.Path(args), nil)
 	if err != nil {
 		return err
 	}
@@ -313,12 +224,12 @@ func get(resource string, args []string) error {
 	case jsonFmt:
 		fmt.Print(string(body))
 	default:
-		return prettyPrint(rsrc, body, single)
+		return prettyPrint(rsrc.kind, body, single)
 	}
 
 	return nil
 }
 
-func update(resource string, args []string) error {
+func update(resource *Resource, args []string) error {
 	return nil
 }

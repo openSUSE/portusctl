@@ -22,7 +22,7 @@ function setup() {
 }
 
 @test "create application token" {
-    portusctl create application_tokens id=1 application=something
+    portusctl create application_token id=1 application=something
     [ $status -eq 0 ]
     [[ "${lines[1]}" =~ "PlainToken" ]]
 
@@ -34,9 +34,9 @@ function setup() {
 }
 
 @test "creating too many application tokens is not allowed" {
-    portusctl create application_tokens id=1 application=something
+    portusctl create application_token id=1 application=something
     [ $status -eq 0 ]
-    portusctl create application_tokens id=1 application=something2
+    portusctl create at id=1 application=something2
     [ $status -eq 0 ]
     portusctl create application_tokens id=1 application=something3
     [ $status -eq 0 ]
@@ -48,5 +48,3 @@ function setup() {
     [[ "${lines[0]}" =~ "base:" ]]
     [[ "${lines[1]}" =~ "- Users cannot have more than 5 application tokens" ]]
 }
-
-# TODO: shortcuts

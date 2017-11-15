@@ -27,10 +27,8 @@ function setup() {
     [[ "${lines[0]}" =~ "ID    Name    Author           Digest    ImageID" ]]
     [[ "${lines[1]}" =~ "1     tag1    admin (ID: 1)    digest    imageid" ]]
 
-    portusctl get tags 1
+    portusctl get tag 1
     [ $status -eq 0 ]
     [[ "${lines[0]}" =~ "ID    Name    Author           Digest    ImageID" ]]
     [[ "${lines[1]}" =~ "1     tag1    admin (ID: 1)    digest    imageid" ]]
 }
-
-# TODO: shortcuts

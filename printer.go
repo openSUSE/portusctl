@@ -55,7 +55,7 @@ func printList(elements interface{}) {
 	w.Flush()
 }
 
-func prettyPrint(resource string, body []byte, single bool) error {
+func prettyPrint(kind int, body []byte, single bool) error {
 	var bodyStr string
 
 	if single {
@@ -65,57 +65,57 @@ func prettyPrint(resource string, body []byte, single bool) error {
 	}
 
 	// TODO: generilize
-	switch resource {
-	case "users", "members":
+	switch kind {
+	case kindUser:
 		data := Users{}
 		err := json.Unmarshal([]byte(bodyStr), &data)
 		if err != nil {
 			return err
 		}
 		printList(data)
-	case "application_tokens":
+	case kindApplicationToken:
 		data := ApplicationTokens{}
 		err := json.Unmarshal([]byte(bodyStr), &data)
 		if err != nil {
 			return err
 		}
 		printList(data)
-	case "plain_tokens":
+	case kindPlainToken:
 		data := PlainTokens{}
 		err := json.Unmarshal([]byte(bodyStr), &data)
 		if err != nil {
 			return err
 		}
 		printList(data)
-	case "teams":
+	case kindTeam:
 		data := Teams{}
 		err := json.Unmarshal([]byte(bodyStr), &data)
 		if err != nil {
 			return err
 		}
 		printList(data)
-	case "namespaces":
+	case kindNamespace:
 		data := Namespaces{}
 		err := json.Unmarshal([]byte(bodyStr), &data)
 		if err != nil {
 			return err
 		}
 		printList(data)
-	case "tags":
+	case kindTag:
 		data := Tags{}
 		err := json.Unmarshal([]byte(bodyStr), &data)
 		if err != nil {
 			return err
 		}
 		printList(data)
-	case "registries":
+	case kindRegistry:
 		data := Registries{}
 		err := json.Unmarshal([]byte(bodyStr), &data)
 		if err != nil {
 			return err
 		}
 		printList(data)
-	case "repositories":
+	case kindRepository:
 		data := Repositories{}
 		err := json.Unmarshal([]byte(bodyStr), &data)
 		if err != nil {

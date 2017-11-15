@@ -25,7 +25,9 @@ function setup() {
     portusctl get registries
     [ $status -eq 0 ]
     [[ "${lines[1]}" =~ '1     registry    registry.test.lan                        false' ]]
-}
 
-# TODO: show command does not work :/
-# TODO: shortcuts
+    # TODO: show command does not work :/
+    #portusctl get registry 1
+    #[ $status -eq 0 ]
+    #[[ "${lines[1]}" =~ '1     registry    registry.test.lan                        false' ]]
+}

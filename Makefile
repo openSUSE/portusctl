@@ -34,7 +34,7 @@ DYN_BUILD_FLAGS := $(BUILD_FLAGS) -buildmode=pie -ldflags "-s -w -X main.gitComm
 
 .DEFAULT: portusctl
 portusctl: $(GO_SRC)
-	$(GO) build ${DYN_BUILD_FLAGS} -o $(CMD)
+	@$(GO) build ${DYN_BUILD_FLAGS} -o $(CMD)
 
 .PHONY: clean
 clean:
@@ -46,11 +46,11 @@ clean:
 
 .PHONY: test-unit
 test-unit:
-	go test -v ./...
+	@go test -v ./...
 
 .PHONY: test-integration
 test-integration: portusctl
-	chmod +x ./test/bin/test-integration.sh
+	@chmod +x ./test/bin/test-integration.sh
 	SKIP_ENV_TESTS="${SKIP_ENV_TESTS}" TEARDOWN_TESTS="${TEARDOWN_TESTS}" ./test/bin/test-integration.sh
 
 .PHONY: test

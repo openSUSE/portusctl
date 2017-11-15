@@ -35,10 +35,8 @@ function setup() {
 }
 
 @test "lists repositories in namespace" {
-    portusctl get namespace 2 repositories
+    portusctl get n 2 repositories
     [ $status -eq 0 ]
     [[ "${lines[0]}" =~ "ID    Name    FullName      Namespace        Stars    TagsCount" ]]
     [[ "${lines[1]}" =~ "1     fake    admin/fake    admin (ID: 2)    0        1" ]]
 }
-
-# TODO: shortcuts

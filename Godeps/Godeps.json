@@ -2,10 +2,11 @@
 	"ImportPath": "github.com/openSUSE/portusctl",
 	"GoVersion": "devel-a9afa4e933f3",
 	"GodepVersion": "v75",
-	"Packages": [
-		"./..."
-	],
 	"Deps": [
+		{
+			"ImportPath": "github.com/mssola/capture",
+			"Rev": "c2d7adef26814956f8e555c627c8bf25adafa9b8"
+		},
 		{
 			"ImportPath": "gopkg.in/urfave/cli.v1",
 			"Comment": "v1.20.0",

@@ -18,6 +18,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"gopkg.in/urfave/cli.v1"
 )
@@ -31,25 +33,12 @@ type config struct {
 	user   string
 	token  string
 	server string
-	format int64
+	format int
 }
 
 // globalConfig contains the configuration needed to perform requests to the
 // Portus server.
 var globalConfig config
-
-// availableResources contains the available resources with their
-// shortcuts. This map can be accessed with the first character as the key.
-var availableResources = map[string][]string{
-	// TODO
-	"app": {"application_tokens", "application_token", "at"}, // TODO: not on GET
-	"nam": {"namespaces", "namespace", "n"},
-	"rep": {"repositories", "repository", "r"},
-	"reg": {"registries", "registry", "re"},
-	"tag": {"tags", "tag", "ta"},
-	"tea": {"teams", "team", "t"},
-	"use": {"users", "user", "u"},
-}
 
 // setFlags sets the global configuration with the values provided by the
 // flags. An error will be returned when one of the mandatory flags is not
@@ -79,30 +68,89 @@ func setFlags(ctx *cli.Context) error {
 	return nil
 }
 
+// parseArguments is only valid for the `get` command and parses the arguments
+// for the given initial resource. It returns the real resource being targeted
+// (e.g. it can be a subresource), whether we are fetching one or multiple
+// elements (`true` for a single element, false otherwise) and an error if
+// possible.
+func parseArguments(resource *Resource, args []string) (*Resource, bool, error) {
+	if len(args) > 1 {
+		if len(resource.subresources) > 0 {
+			resource = findResource(args[1])
+			if resource == nil {
+				return nil, false, fmt.Errorf("unknown subresource '%v'", args[1])
+			}
+		} else {
+			return nil, false, errors.New("too many arguments")
+		}
+	}
+
+	return resource, len(args)&1 == 1, nil
+}
+
+func extractArguments(resource *Resource, args []string) (map[string]string, error) {
+	id := ""
+	values := make(map[string]string)
+	unknown := make(map[string]string)
+	for _, a := range args {
+		keyValue := strings.Split(a, "=")
+		i := indexInSlice(resource.required, keyValue[0])
+		if i >= 0 {
+			if keyValue[0] == "id" {
+				id = keyValue[1]
+			} else {
+				values[keyValue[0]] = keyValue[1]
+			}
+			resource.required = append(resource.required[:i], resource.required[i+1:]...)
+		} else {
+			unknown[keyValue[0]] = keyValue[1]
+		}
+	}
+
+	finalUnknown := []string{}
+	for k, v := range unknown {
+		i := indexInSlice(resource.optional, k)
+		if i >= 0 {
+			values[k] = v
+		} else {
+			finalUnknown = append(finalUnknown, k)
+		}
+	}
+
+	if len(finalUnknown) != 0 {
+		fmt.Printf("Ignoring the following keys: %v\n\n", strings.Join(finalUnknown, ", "))
+	}
+	if len(resource.required) != 0 {
+		return nil, fmt.Errorf("The following mandatory fields are missing: %v",
+			strings.Join(resource.required, ", "))
+	}
+	super := findResourceByID(resource.superresource)
+	if super != nil && id != "" {
+		resource.prefix = filepath.Join(super.FullName(), id)
+	}
+	return values, nil
+}
+
 // checkResource checks that the given resource is a valid one, and returns the
 // identifier of the resource. If no resource was given, then the help command
 // is executed.
-func checkResource(resource string, ctx *cli.Context) (string, error) {
+func checkResource(resource string, ctx *cli.Context) (*Resource, error) {
 	if resource == "" {
 		cli.ShowAppHelp(ctx)
 		fmt.Println("")
-		return "", errors.New("You have to provide at least one argument")
+		return nil, errors.New("You have to provide at least one argument")
 	}
 
-	// TODO: broken one-letter shortcuts...
-	// TODO: ./portusctl delete 3 <- CRASH
-	bet := availableResources[resource[0:3]]
-	for _, synonim := range bet {
-		if synonim == resource {
-			return bet[0], nil
-		}
+	res := findResource(resource)
+	if res != nil {
+		return res, nil
 	}
-	return "", fmt.Errorf("unknown resource '%v'", resource)
+	return nil, fmt.Errorf("unknown resource '%v'", resource)
 }
 
 // resourceDecorator decorates the given function with some checks on the
 // arguments and flags.
-func resourceDecorator(f func(string, []string) error) func(*cli.Context) error {
+func resourceDecorator(f func(*Resource, []string) error) func(*cli.Context) error {
 	return func(ctx *cli.Context) error {
 		if err := setFlags(ctx); err != nil {
 			return err

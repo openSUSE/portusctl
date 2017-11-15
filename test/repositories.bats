@@ -27,14 +27,14 @@ function setup() {
     [[ "${lines[0]}" =~ "ID    Name    FullName      Namespace        Stars    TagsCount" ]]
     [[ "${lines[1]}" =~ "1     fake    admin/fake    admin (ID: 2)    0        1" ]]
 
-    portusctl get repositories 1
+    portusctl get repository 1
     [ $status -eq 0 ]
     [[ "${lines[0]}" =~ "ID    Name    FullName      Namespace        Stars    TagsCount" ]]
     [[ "${lines[1]}" =~ "1     fake    admin/fake    admin (ID: 2)    0        1" ]]
 }
 
 @test "fetch tags from repository" {
-    portusctl get repositories 1 tags
+    portusctl get r 1 tags
     [ $status -eq 0 ]
     [[ "${lines[0]}" =~ "ID    Name    Author           Digest    ImageID" ]]
     [[ "${lines[1]}" =~ "1     tag1    admin (ID: 1)    digest    imageid" ]]
@@ -45,5 +45,3 @@ function setup() {
     [ $status -eq 1 ]
     [[ "${lines[0]}" =~ "Resource not found" ]]
 }
-
-# TODO: shortcuts

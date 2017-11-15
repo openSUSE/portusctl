@@ -22,9 +22,9 @@ function setup() {
 }
 
 @test "create two users, fetch them, then delete one and fetch again" {
-    portusctl create users username=msabate email=example@test.lan password=12341234
+    portusctl create user username=msabate email=example@test.lan password=12341234
     [ $status -eq 0 ]
-    portusctl create users username=another email=another@test.lan password=12341234 display_name=lala
+    portusctl create user username=another email=another@test.lan password=12341234 display_name=lala
     [ $status -eq 0 ]
 
     portusctl get users
@@ -37,7 +37,7 @@ function setup() {
     portusctl delete user 2
     [ $status -eq 0 ]
 
-    portusctl get users
+    portusctl get u
     [ $status -eq 0 ]
     [[ "${lines[0]}" =~ "ID    Username    Email                  Admin    NamespaceID    DisplayName" ]]
     [[ "${lines[1]}" =~ "1     admin       admin@example.local    true     2" ]]
@@ -71,5 +71,3 @@ function setup() {
     [ $status -eq 0 ]
     [[ "${lines[0]}" =~ '[{"id":1,"username":"admin","email":"admin@example.local"' ]]
 }
-
-# TODO: shortcuts

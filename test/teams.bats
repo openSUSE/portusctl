@@ -32,7 +32,7 @@ function setup() {
     [[ "${lines[0]}" =~ "ID    Name       Hidden" ]]
     [[ "${lines[1]}" =~ "2     newteam    false" ]]
 
-    portusctl get team 2
+    portusctl get t 2
     [ $status -eq 0 ]
     [[ "${lines[0]}" =~ "ID    Name       Hidden" ]]
     [[ "${lines[1]}" =~ "2     newteam    false" ]]
@@ -52,5 +52,3 @@ function setup() {
     [[ "${lines[0]}" =~ "ID    Name            Description    TeamID    Visibility    Global" ]]
     [[ "${lines[1]}" =~ "3     newnamespace                   2         private       false" ]]
 }
-
-# TODO: shortcuts

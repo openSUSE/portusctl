@@ -2,7 +2,6 @@
 
 Under construction. To do:
 
-- Integration tests
 - Update method
 - Validate method
 - Refactoring
@@ -23,9 +22,35 @@ Final considerations:
 
 ## Development
 
+You could build this project as any other Go binary with `go build`, but this is
+not recommended. Instead, use the default make target:
+
+```
+$ make
+# or the equivalent to `make portusctl`
+```
+
+With this command, `portusctl` will be built with the desired build flags and
+setting the proper version for it. Note that the build can be further customized
+with the `BUILD_FLAGS` variable. So, you could pass extra arguments like so:
+
+```
+$ make BUILD_FLAGS="-v"
+```
+
+When doing this you should be careful to not conflict with a default build flag.
+
+### Unit testing
+
+Unit testing is performed through the `test-unit` make target:
+
+```
+$ make test-unit
+```
+
 ### Integration testing
 
-We use [bats](https://github.com/sstephenson/bats.git] for integration testing
+We use [bats](https://github.com/sstephenson/bats.git) for integration testing
 and `docker-compose`. There is a specific target on the `Makefile` called
 `test-integration`, which will run the test integration suite:
 
@@ -66,6 +91,31 @@ If only you care about a specific test (e.g. the `test/users.bats` file):
 
 ```
 $ make test-integration TESTS=users SKIP_ENV_TESTS=1 TEARDOWN_TESTS=
+```
+
+### Validation
+
+Besides running tests, we also perform some validation tests on the code. These
+tests can be run like this:
+
+```
+$ make validate
+```
+
+### Other make targets
+
+If you want to perform both unit and integration testing, then you can simply
+call the `test` target like this:
+
+```
+$ make test
+```
+
+If you want to run all tests (including validations), you can run the same
+target the CI environment will use:
+
+```
+$ make ci
 ```
 
 ## License
