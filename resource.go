@@ -35,17 +35,22 @@ const (
 )
 
 // Resource represents a resource as defined by this application.
+// NOTE: maybe in the future we want to make `subresources` more fine-grained so
+// it can also be specified the permissions on the subresource level. For now
+// it's fine because then the path that will be built is wrong and so the server
+// responds with a http.StatusMethodNotAllowed.
 type Resource struct {
-	action        int
-	bundler       string
-	kind          int
-	optional      []string
-	prefix        string
-	required      []string
-	returnedKind  int
-	synonims      []string
-	superresource int
-	subresources  []string
+	action           int
+	bundler          string
+	kind             int
+	optional         []string
+	prefix           string
+	required         []string
+	returnedKind     int
+	synonims         []string
+	superresource    int
+	subresources     []string
+	supportedActions []int
 }
 
 // String returns a pretty version of the resource.
@@ -88,6 +93,20 @@ func (r *Resource) ReturnedKind() int {
 	return r.returnedKind
 }
 
+// SetAction sets the given action to the resource if possible: resources have a
+// constraint on which actions are supported. If the action is not supported,
+// then an error is returned. Used this function instead of directly accessing
+// the `action` attribute of Resource.
+func (r *Resource) SetAction(action int) error {
+	for _, v := range r.supportedActions {
+		if v == action {
+			r.action = action
+			return nil
+		}
+	}
+	return fmt.Errorf("Action not supported for resource '%v'", r.String())
+}
+
 // TODO: maybe we should turn that into a map or a proper slice
 func findResourceByID(id int) *Resource {
 	for _, res := range availableResources {
@@ -121,47 +140,53 @@ func findResource(resource string) *Resource {
 
 var availableResources = []Resource{
 	{
-		// TODO: restrict so it's not used on GET
-		required:      []string{"id", "application"},
-		kind:          kindApplicationToken,
-		returnedKind:  kindPlainToken,
-		superresource: kindUser,
-		synonims:      []string{"at", "application_token", "application_tokens"},
+		required:         []string{"id", "application"},
+		kind:             kindApplicationToken,
+		returnedKind:     kindPlainToken,
+		superresource:    kindUser,
+		supportedActions: []int{postAction, deleteAction},
+		synonims:         []string{"at", "application_token", "application_tokens"},
 	},
 	{
-		kind:         kindNamespace,
-		optional:     []string{"description"},
-		required:     []string{"name", "team"},
-		subresources: []string{"repositories"},
-		synonims:     []string{"n", "namespace", "namespaces"},
+		kind:             kindNamespace,
+		optional:         []string{"description"},
+		required:         []string{"name", "team"},
+		subresources:     []string{"repositories"},
+		supportedActions: []int{getAction, postAction},
+		synonims:         []string{"n", "namespace", "namespaces"},
 	},
 	{
-		kind:         kindRepository,
-		subresources: []string{"tags"},
-		synonims:     []string{"r", "repository", "repositories"},
+		kind:             kindRepository,
+		subresources:     []string{"tags"},
+		supportedActions: []int{getAction},
+		synonims:         []string{"r", "repository", "repositories"},
 	},
 	{
-		kind:     kindRegistry,
-		synonims: []string{"re", "registry", "registries"},
+		kind:             kindRegistry,
+		supportedActions: []int{getAction},
+		synonims:         []string{"re", "registry", "registries"},
 	},
 	{
-		kind:     kindTag,
-		synonims: []string{"tag", "tags"},
+		kind:             kindTag,
+		supportedActions: []int{getAction},
+		synonims:         []string{"tag", "tags"},
 	},
 	{
-		kind:         kindTeam,
-		optional:     []string{"description"},
-		required:     []string{"name"},
-		subresources: []string{"members", "namespaces"},
-		synonims:     []string{"t", "team", "teams"},
+		kind:             kindTeam,
+		optional:         []string{"description"},
+		required:         []string{"name"},
+		subresources:     []string{"members", "namespaces"},
+		supportedActions: []int{getAction, postAction},
+		synonims:         []string{"t", "team", "teams"},
 	},
 	{
-		bundler:      "user",
-		kind:         kindUser,
-		optional:     []string{"display_name"},
-		required:     []string{"username", "email", "password"},
-		subresources: []string{"application_tokens"},
-		synonims:     []string{"u", "user", "users"},
+		bundler:          "user",
+		kind:             kindUser,
+		optional:         []string{"display_name"},
+		required:         []string{"username", "email", "password"},
+		subresources:     []string{"application_tokens"},
+		supportedActions: []int{getAction, postAction, putAction, deleteAction},
+		synonims:         []string{"u", "user", "users"},
 	},
 }
 

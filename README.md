@@ -2,7 +2,6 @@
 
 Under construction. To do:
 
-- Disallow some actions
 - Validate method
 - Refactoring
 - Polish exec command

@@ -153,7 +153,7 @@ func extractArguments(resource *Resource, args []string) (map[string]string, err
 // checkResource checks that the given resource is a valid one, and returns the
 // identifier of the resource. If no resource was given, then the help command
 // is executed.
-func checkResource(resource string, ctx *cli.Context) (*Resource, error) {
+func checkResource(resource string, ctx *cli.Context, action int) (*Resource, error) {
 	if resource == "" {
 		cli.ShowAppHelp(ctx)
 		fmt.Println("")
@@ -161,10 +161,17 @@ func checkResource(resource string, ctx *cli.Context) (*Resource, error) {
 	}
 
 	res := findResource(resource)
-	if res != nil {
-		return res, nil
+	if res == nil {
+		return nil, fmt.Errorf("unknown resource '%v'", resource)
 	}
-	return nil, fmt.Errorf("unknown resource '%v'", resource)
+
+	// Check that the given action can be perform on the resource.
+	err := res.SetAction(action)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+
 }
 
 // resourceDecorator decorates the given function with some checks on the
@@ -175,12 +182,12 @@ func resourceDecorator(f func(*Resource, []string) error, action int) func(*cli.
 			return err
 		}
 
-		resource, err := checkResource(ctx.Args().Get(0), ctx)
-		if err == nil {
-			args := ctx.Args()
-			resource.action = action
-			return f(resource, args[1:])
+		resource, err := checkResource(ctx.Args().Get(0), ctx, action)
+		if err != nil {
+			return err
 		}
-		return err
+
+		args := ctx.Args()
+		return f(resource, args[1:])
 	}
 }

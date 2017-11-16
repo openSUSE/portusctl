@@ -48,3 +48,12 @@ function setup() {
     [[ "${lines[0]}" =~ "base:" ]]
     [[ "${lines[1]}" =~ "- Users cannot have more than 5 application tokens" ]]
 }
+
+@test "an application token cannot be updated" {
+    portusctl create application_token id=1 application=something
+    [ $status -eq 0 ]
+
+    portusctl update application_tokens 2 application=another
+    [ $status -eq 1 ]
+    [[ "${lines[0]}" =~ "Action not supported for resource 'application token'" ]]
+}
