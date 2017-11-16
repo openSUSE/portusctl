@@ -40,3 +40,14 @@ function setup() {
     [[ "${lines[0]}" =~ "ID    Name    FullName      Namespace        Stars    TagsCount" ]]
     [[ "${lines[1]}" =~ "1     fake    admin/fake    admin (ID: 2)    0        1" ]]
 }
+
+@test "validate namespace" {
+    portusctl validate namespace name=something
+    [ $status -eq 0 ]
+    [[ "${lines[0]}" =~ "Valid" ]]
+
+    portusctl validate namespace name=admin
+    [ $status -eq 1 ]
+    [[ "${lines[0]}" =~ "name:" ]]
+    [[ "${lines[1]}" =~ "- Has already been taken" ]]
+}

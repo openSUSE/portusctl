@@ -22,10 +22,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
-	"unicode"
-	"unicode/utf8"
 )
 
 const (
@@ -35,7 +32,7 @@ const (
 var requestTimeout = 15 * time.Second
 
 func generateBody(resource *Resource, args []string) ([]byte, error) {
-	values, err := extractArguments(resource, args)
+	values, err := extractArguments(resource, args, false)
 	if err != nil {
 		return nil, err
 	}
@@ -54,9 +51,10 @@ func generateBody(resource *Resource, args []string) ([]byte, error) {
 	return b, nil
 }
 
-func buildRequest(method, path string, body []byte) (*http.Request, error) {
+func buildRequest(method, path, query string, body []byte) (*http.Request, error) {
 	u, _ := url.Parse(globalConfig.server)
 	u.Path = path
+	u.RawQuery = query
 
 	reader := bytes.NewBuffer(body)
 	req, err := http.NewRequest(method, u.String(), reader)
@@ -68,8 +66,8 @@ func buildRequest(method, path string, body []byte) (*http.Request, error) {
 	return req, nil
 }
 
-func request(method, path string, body []byte) (*http.Response, error) {
-	req, err := buildRequest(method, path, body)
+func request(method, path, query string, body []byte) (*http.Response, error) {
+	req, err := buildRequest(method, path, query, body)
 	if err != nil {
 		return nil, err
 	}
@@ -94,15 +92,7 @@ func handleCode(response *http.Response) error {
 		defer response.Body.Close()
 
 		json.NewDecoder(response.Body).Decode(&target)
-		str := ""
-		for k, list := range target["errors"] {
-			str += k + ":\n"
-			for _, e := range list {
-				r, n := utf8.DecodeRuneInString(e)
-				str += "  - " + string(unicode.ToUpper(r)) + e[n:] + "\n"
-			}
-		}
-		return errors.New(strings.TrimRight(str, "\n"))
+		return messagesError(target["errors"])
 	} else if code == http.StatusUnauthorized || code == http.StatusForbidden {
 		key := "errors"
 		if code == http.StatusUnauthorized {

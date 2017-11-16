@@ -139,6 +139,22 @@ Where <resource> is the resource that you want to fetch.`,
 
 Where <resource> is the resource that you want to update.`,
 		},
+		{
+			Name:   "validate",
+			Usage:  "Validate the given resource",
+			Action: resourceDecorator(validate, validateAction),
+			ArgsUsage: `<resource> [arguments...]
+
+Where <resource> is the resource that you want to validate.`,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:   "format, f",
+					Value:  "default",
+					Usage:  "The output format. Available options: default and json",
+					EnvVar: "PORTUSCTL_FORMAT",
+				},
+			},
+		},
 	}
 
 	app.RunAndExitOnError()

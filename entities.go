@@ -166,3 +166,9 @@ func (e Registry) String() string {
 
 // Registries is a list of registries.
 type Registries []Registry
+
+// Validate is the response from /validate endpoints.
+type Validate struct {
+	Messages map[string][]string `json:"messages"`
+	Valid    bool                `json:"valid"`
+}

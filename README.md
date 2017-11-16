@@ -2,9 +2,8 @@
 
 Under construction. To do:
 
-- Validate method
+- Polish exec command & integration tests for it
 - Refactoring
-- Polish exec command
 - Coverage
 - Man pages
 - RPM spec

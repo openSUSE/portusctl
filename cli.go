@@ -34,6 +34,7 @@ const (
 	postAction
 	putAction
 	deleteAction
+	validateAction
 )
 
 type config struct {
@@ -91,6 +92,7 @@ func parseArguments(resource *Resource, args []string) (*Resource, bool, error) 
 			if resource == nil {
 				return nil, false, fmt.Errorf("unknown subresource '%v'", args[1])
 			}
+			args[1] = resource.FullName()
 		} else {
 			return nil, false, errors.New("too many arguments")
 		}
@@ -99,10 +101,16 @@ func parseArguments(resource *Resource, args []string) (*Resource, bool, error) 
 	return resource, len(args)&1 == 1, nil
 }
 
-func extractArguments(resource *Resource, args []string) (map[string]string, error) {
+func extractArguments(resource *Resource, args []string, validate bool) (map[string]string, error) {
 	id := ""
 	values := make(map[string]string)
 	unknown := make(map[string]string)
+
+	if validate {
+		resource.required = resource.validate
+		resource.optional = []string{}
+	}
+
 	for _, a := range args {
 		keyValue := strings.Split(a, "=")
 		i := indexInSlice(resource.required, keyValue[0])

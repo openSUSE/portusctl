@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"path/filepath"
 	"strings"
 )
@@ -32,6 +33,7 @@ const (
 	kindTag
 	kindTeam
 	kindUser
+	kindValidate
 )
 
 // Resource represents a resource as defined by this application.
@@ -51,6 +53,7 @@ type Resource struct {
 	superresource    int
 	subresources     []string
 	supportedActions []int
+	validate         []string
 }
 
 // String returns a pretty version of the resource.
@@ -87,7 +90,9 @@ func (r *Resource) Path(args []string) string {
 // current resource. Use this instead of directly accessing the `returnedKind`
 // attribute of Resource.
 func (r *Resource) ReturnedKind() int {
-	if r.returnedKind < kindApplicationToken {
+	if r.action == validateAction {
+		r.returnedKind = kindValidate
+	} else if r.returnedKind < kindApplicationToken {
 		r.returnedKind = r.kind
 	}
 	return r.returnedKind
@@ -152,8 +157,9 @@ var availableResources = []Resource{
 		optional:         []string{"description"},
 		required:         []string{"name", "team"},
 		subresources:     []string{"repositories"},
-		supportedActions: []int{getAction, postAction},
+		supportedActions: []int{getAction, postAction, validateAction},
 		synonims:         []string{"n", "namespace", "namespaces"},
+		validate:         []string{"name"},
 	},
 	{
 		kind:             kindRepository,
@@ -163,8 +169,9 @@ var availableResources = []Resource{
 	},
 	{
 		kind:             kindRegistry,
-		supportedActions: []int{getAction},
+		supportedActions: []int{getAction, validateAction},
 		synonims:         []string{"re", "registry", "registries"},
+		validate:         []string{"name", "hostname", "external_hostname", "use_ssl", "only"},
 	},
 	{
 		kind:             kindTag,
@@ -198,23 +205,19 @@ func createUpdate(resource *Resource, method string, args, prefix []string) erro
 		return err
 	}
 
-	res, err := request(method, resource.Path(prefix), b)
+	res, err := request(method, resource.Path(prefix), "", b)
 	if err != nil {
 		return err
 	}
 
 	if !globalConfig.quiet {
-		fmt.Printf("Updated '%v' successfully!\n\n", resource.String())
+		if method == "POST" {
+			fmt.Printf("Created '%v' successfully!\n\n", resource.String())
+		} else {
+			fmt.Printf("Updated '%v' successfully!\n\n", resource.String())
+		}
 	}
-
-	body, _ := ioutil.ReadAll(res.Body)
-	switch globalConfig.format {
-	case jsonFmt:
-		fmt.Print(string(body))
-	default:
-		return prettyPrint(resource.ReturnedKind(), body, true)
-	}
-	return nil
+	return printAndQuit(res, resource.ReturnedKind(), true)
 }
 
 func create(resource *Resource, args []string) error {
@@ -230,7 +233,7 @@ func delete(resource *Resource, args []string) error {
 	if super != nil {
 		resource.prefix = super.FullName()
 	}
-	res, err := request("DELETE", resource.Path(args), nil)
+	res, err := request("DELETE", resource.Path(args), "", nil)
 	if err != nil {
 		return err
 	}
@@ -249,20 +252,11 @@ func get(resource *Resource, args []string) error {
 		return err
 	}
 
-	res, err := request("GET", resource.Path(args), nil)
+	res, err := request("GET", resource.Path(args), "", nil)
 	if err != nil {
 		return err
 	}
-
-	body, _ := ioutil.ReadAll(res.Body)
-	switch globalConfig.format {
-	case jsonFmt:
-		fmt.Print(string(body))
-	default:
-		return prettyPrint(rsrc.kind, body, single)
-	}
-
-	return nil
+	return printAndQuit(res, rsrc.kind, single)
 }
 
 func update(resource *Resource, args []string) error {
@@ -272,4 +266,27 @@ func update(resource *Resource, args []string) error {
 
 	prefix := []string{args[0]}
 	return createUpdate(resource, "PUT", args[1:], prefix)
+}
+
+func validate(resource *Resource, args []string) error {
+	if len(args) < 1 {
+		return errors.New("not enough parameters")
+	}
+
+	extracted, err := extractArguments(resource, args, true)
+	if err != nil {
+		return err
+	}
+
+	values := url.Values{}
+	for k, v := range extracted {
+		values.Set(k, v)
+	}
+	query := values.Encode()
+
+	res, err := request("GET", resource.Path([]string{"validate"}), query, nil)
+	if err != nil {
+		return err
+	}
+	return printAndQuit(res, resource.ReturnedKind(), false)
 }

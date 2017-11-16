@@ -17,11 +17,16 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"reflect"
 	"strings"
 	"text/tabwriter"
+	"unicode"
+	"unicode/utf8"
 )
 
 func header(elements interface{}, join bool) string {
@@ -53,6 +58,28 @@ func printList(elements interface{}) {
 		fmt.Fprintln(w, v.Index(i))
 	}
 	w.Flush()
+}
+
+func printValidate(data Validate) error {
+	if data.Valid {
+		if !globalConfig.quiet {
+			fmt.Println("Valid")
+		}
+		return nil
+	}
+	return messagesError(data.Messages)
+}
+
+func messagesError(messages map[string][]string) error {
+	str := ""
+	for k, list := range messages {
+		str += k + ":\n"
+		for _, e := range list {
+			r, n := utf8.DecodeRuneInString(e)
+			str += "  - " + string(unicode.ToUpper(r)) + e[n:] + "\n"
+		}
+	}
+	return errors.New(strings.TrimRight(str, "\n"))
 }
 
 func prettyPrint(kind int, body []byte, single bool) error {
@@ -126,7 +153,26 @@ func prettyPrint(kind int, body []byte, single bool) error {
 			return err
 		}
 		printList(data)
+	case kindValidate:
+		data := Validate{}
+		err := json.Unmarshal([]byte(bodyStr), &data)
+		if err != nil {
+			return err
+		}
+		return printValidate(data)
 	default:
+	}
+	return nil
+}
+
+func printAndQuit(response *http.Response, kind int, single bool) error {
+	body, _ := ioutil.ReadAll(response.Body)
+
+	switch globalConfig.format {
+	case jsonFmt:
+		fmt.Print(string(body))
+	default:
+		return prettyPrint(kind, body, single)
 	}
 	return nil
 }
