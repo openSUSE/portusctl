@@ -19,6 +19,7 @@ services:
       - db
     volumes:
       - ./runner.rb:/srv/Portus/bin/runner.rb:ro
+      - ./portusctl:/usr/local/bin/portusctl
       - ./tmp:/srv/Portus/tmp
 
   db:

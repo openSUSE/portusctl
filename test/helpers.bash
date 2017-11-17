@@ -46,3 +46,8 @@ function __setup_db() {
 function portusctl() {
     sane_run $PORTUSCTL $@
 }
+
+# Wrapper that allows us to run commands inside of the Portus container.
+function docker_run() {
+    sane_run docker exec -e PORTUSCTL=$PORTUSCTL portus_portus_1 $@
+}

@@ -2,11 +2,10 @@
 
 Under construction. To do:
 
-- Polish exec command & integration tests for it
-- Refactoring
-- Coverage
 - Man pages
 - RPM spec
+- Coverage
+- Refactoring & 100% coverage
 
 Missing resources on both sides:
 

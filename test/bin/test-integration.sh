@@ -17,6 +17,8 @@
 ROOT_DIR="$( cd "$( dirname "$0" )/../.." && pwd )"
 CNAME="portus_portus_1"
 
+cp "$ROOT_DIR/portusctl" "$ROOT_DIR/test/portus/"
+
 # Setup the environment
 if [[ ! "$SKIP_ENV_TESTS" ]]; then
     pushd "$ROOT_DIR/test/portus"

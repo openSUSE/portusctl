@@ -104,7 +104,7 @@ Portus instance. The successive arguments will be passed also to this command.`,
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "local, l",
-					Value:  "/srv/Portus",
+					Value:  defaultPath,
 					Usage:  "The location on the current host of your Portus instance",
 					EnvVar: "PORTUSCTL_EXEC_LOCATION",
 				},
