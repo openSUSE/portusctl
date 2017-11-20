@@ -2,7 +2,7 @@
 
 Under construction. To do:
 
-- Man pages
+- Blog post
 - RPM spec
 - Coverage
 - Refactoring & 100% coverage
@@ -99,6 +99,16 @@ tests can be run like this:
 
 ```
 $ make validate
+```
+
+### Man pages
+
+Man pages have been written using Markdown, and they can be found in the `man`
+directory. In order to generate man pages from these markdown files, you have to
+run the following command:
+
+```
+$ make doc
 ```
 
 ### Other make targets

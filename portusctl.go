@@ -37,9 +37,6 @@ There is NO WARRANTY, to the extent permitted by law.`, str)
 }
 
 func main() {
-	// TODO: exec command (implementing also rake), logs (with warning on
-	// containerized setups) and api thingies.
-
 	app := cli.NewApp()
 	app.Name = "portusctl"
 	app.Usage = "Client for your Portus instance"
@@ -75,7 +72,6 @@ func main() {
 		},
 	}
 
-	// TODO: add validate command
 	app.Commands = []cli.Command{
 		{
 			Name:   "create",

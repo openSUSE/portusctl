@@ -13,6 +13,7 @@ env:
 
 before_install:
   # Test dependencies
+  - go get -u github.com/cpuguy83/go-md2man
   - go get -u github.com/vbatts/git-validation
   - go get -u github.com/golang/lint/golint
 

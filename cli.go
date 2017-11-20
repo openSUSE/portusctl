@@ -101,6 +101,7 @@ func parseArguments(resource *Resource, args []string) (*Resource, bool, error) 
 	return resource, len(args)&1 == 1, nil
 }
 
+// TODO: crash on argument that doesn't have a '='. Ex: ./portusctl update user id=2 display_name""
 func extractArguments(resource *Resource, args []string, validate bool) (map[string]string, error) {
 	id := ""
 	values := make(map[string]string)
@@ -162,6 +163,7 @@ func extractArguments(resource *Resource, args []string, validate bool) (map[str
 // identifier of the resource. If no resource was given, then the help command
 // is executed.
 func checkResource(resource string, ctx *cli.Context, action int) (*Resource, error) {
+	// TODO: be more helpful: show resources available
 	if resource == "" {
 		cli.ShowAppHelp(ctx)
 		fmt.Println("")

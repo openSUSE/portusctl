@@ -16,6 +16,7 @@
 # This Makefile has taken lots of ideas and code from openSUSE/umoci by Aleksa Sarai.
 
 GO ?= go
+GO_MD2MAN ?= go-md2man
 CMD ?= portusctl
 GO_SRC = $(shell find . -name \*.go)
 
@@ -39,6 +40,8 @@ portusctl: $(GO_SRC)
 .PHONY: clean
 clean:
 	@rm -rf $(CMD)
+	@rm -f ./man/*.1
+	@rm -f ./man/*.out
 
 #
 # Unit & integration tests.
@@ -83,8 +86,23 @@ validate-go:
 validate: validate-git validate-go
 
 #
+# Man pages
+#
+
+MANPAGES_MD := $(wildcard man/*.md)
+MANPAGES    := $(MANPAGES_MD:%.md=%)
+
+man/%.1: man/%.1.md
+	@$(GO_MD2MAN) -in $< -out $@.out
+	@go run man/sanitize.go $@.out &> $@
+	@rm $@.out
+
+.PHONY: doc
+doc: $(MANPAGES)
+
+#
 # Travis-CI
 #
 
 .PHONY: ci
-ci: portusctl validate test
+ci: portusctl doc validate test

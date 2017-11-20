@@ -106,6 +106,12 @@ func handleCode(response *http.Response) error {
 		return errors.New("Resource not found")
 	} else if code == http.StatusMethodNotAllowed {
 		return errors.New("Action not allowed on given resource")
+	} else if code >= http.StatusInternalServerError && code <= http.StatusNetworkAuthenticationRequired {
+		fmt.Println("Portus faced an error:\n")
+		target := make(map[string]string)
+		defer response.Body.Close()
+		json.NewDecoder(response.Body).Decode(&target)
+		return errors.New(target["error"])
 	}
 	return nil
 }

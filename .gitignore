@@ -1,5 +1,7 @@
 portusctl
 main.test
-./test/portus/tmp
-./test/portus/tmp/*
-./test/portus/tmp/**/*
+man/*.1
+man/*.out
+test/portus/tmp
+test/portus/tmp/*
+test/portus/tmp/**/*
