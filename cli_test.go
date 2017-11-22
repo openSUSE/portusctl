@@ -259,3 +259,22 @@ func TestExtractArgumentsValidate(t *testing.T) {
 
 	testMap(t, args, [][]string{{"name", "something"}})
 }
+
+func TestExtractArgumentsInvalidArgument(t *testing.T) {
+	var err error
+
+	user := newResource(kindUser)
+	user.action = postAction
+
+	capture.All(func() {
+		_, err = extractArguments(&user, []string{"emaillala@example.org"}, false)
+	})
+
+	msg := "The following mandatory fields are missing: username, email, password"
+	if err == nil {
+		t.Fatalf("Expecting error, none was given")
+	}
+	if err.Error() != msg {
+		t.Fatalf("Expected error with message: '%v';, '%v' was given", msg, err.Error())
+	}
+}

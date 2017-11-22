@@ -101,7 +101,6 @@ func parseArguments(resource *Resource, args []string) (*Resource, bool, error) 
 	return resource, len(args)&1 == 1, nil
 }
 
-// TODO: crash on argument that doesn't have a '='. Ex: ./portusctl update user id=2 display_name""
 func extractArguments(resource *Resource, args []string, validate bool) (map[string]string, error) {
 	id := ""
 	values := make(map[string]string)
@@ -122,7 +121,7 @@ func extractArguments(resource *Resource, args []string, validate bool) (map[str
 				values[keyValue[0]] = keyValue[1]
 			}
 			resource.required = append(resource.required[:i], resource.required[i+1:]...)
-		} else {
+		} else if len(keyValue) == 2 {
 			unknown[keyValue[0]] = keyValue[1]
 		}
 	}
