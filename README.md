@@ -1,8 +1,8 @@
 # portusctl [![Build Status](https://travis-ci.org/openSUSE/portusctl.svg?branch=master)](https://travis-ci.org/openSUSE/portusctl)
 
-**portusctl** is a client for your Portus instance. It allows you to access the
-REST API offered by Portus and present the results in a friendly manner. For
-example:
+**portusctl** is a client for your [Portus](https://github.com/SUSE/Portus)
+instance. It allows you to access the REST API offered by Portus and present the
+results in a friendly manner. For example:
 
 ```bash
 $ portusctl get users
@@ -39,16 +39,15 @@ ID    Username    Email               Admin    NamespaceID    DisplayName
 3     user        user@portus.test    false    5              User
 ```
 
-Moreover, it also allows you to execute arbitrary command on the Portus' context
-if your instance is running locally:
+Moreover, it also allows you to execute arbitrary commands on the Portus'
+context if your instance is running locally:
 
 ```bash
 $ portusctl exec cat .ruby-version
 2.4.2
 ```
 
-**portusctl** is **not** stable and it is **under construction**, since both the
-REST API of Portus and this implementation are quite recent.
+**portusctl** is **not** stable and it is **under construction**.
 
 ## Development
 
