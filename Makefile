@@ -37,6 +37,10 @@ DYN_BUILD_FLAGS := $(BUILD_FLAGS) -buildmode=pie -ldflags "-s -w -X main.gitComm
 portusctl: $(GO_SRC)
 	@$(GO) build ${DYN_BUILD_FLAGS} -o $(CMD)
 
+.PHONY: install
+install: $(GO_SRC)
+	@$(GO) install -v ${DYN_BUILD_FLAGS} .
+
 .PHONY: clean
 clean:
 	@rm -rf $(CMD)

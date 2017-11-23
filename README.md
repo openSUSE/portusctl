@@ -49,6 +49,24 @@ $ portusctl exec cat .ruby-version
 
 **portusctl** is **not** stable and it is **under construction**.
 
+## Installation
+
+You can install `portusctl` from source by cloning this repository and then
+performing the following command:
+
+```bash
+$ make install
+```
+
+You can also install `portusctl` from
+[obs://Virtualization:containers:Portus](https://build.opensuse.org/package/show/Virtualization:containers:Portus/portusctl). In
+order to install it with zypper you need to perform the following commands:
+
+```bash
+$ zypper ar -f https://download.opensuse.org/repositories/Virtualization:/containers:/Portus/openSUSE_Leap_42.3/ portus
+$ zypper install portusctl
+```
+
 ## Development
 
 You could build this project as any other Go binary with `go build`, but this is
