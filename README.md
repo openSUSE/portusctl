@@ -1,23 +1,54 @@
 # portusctl [![Build Status](https://travis-ci.org/openSUSE/portusctl.svg?branch=master)](https://travis-ci.org/openSUSE/portusctl)
 
-Under construction. To do:
+**portusctl** is a client for your Portus instance. It allows you to access the
+REST API offered by Portus and present the results in a friendly manner. For
+example:
 
-- Blog post
-- RPM spec
-- Coverage
-- Refactoring & 100% coverage
+```bash
+$ portusctl get users
+...(output)...
+ID    Username    Email                Admin    NamespaceID    DisplayName
+1     portus      portus@portus.com    true     2
+2     mssola      admin@portus.test    true     3
 
-Missing resources on both sides:
+$ portusctl get -f json users 2 | jq
+...(output)...
+{
+    "id": 2,
+    "username": "mssola",
+    "email": "admin@portus.test",
+    "current_sign_in_at": "2017-11-22T14:30:52.000Z",
+    "last_sign_in_at": "2017-11-16T09:23:34.000Z",
+    "created_at": "2017-11-14T14:22:01.000Z",
+    "updated_at": "2017-11-22T14:30:52.000Z",
+    "admin": true,
+    "enabled": true,
+    "locked_at": null,
+    "namespace_id": 3,
+    "display_name": ""
+}
 
-- Webhooks
-- Search and explore
-- Ping and health
-- Activities
+$ portusctl create user username=user email=user@portus.test password=12341234
+...(output)...
+ID    Username    Email               Admin    NamespaceID    DisplayName
+3     user        user@portus.test    false    5
 
-Final considerations:
+$ portusctl update user 3 display_name=User
+...(output)...
+ID    Username    Email               Admin    NamespaceID    DisplayName
+3     user        user@portus.test    false    5              User
+```
 
-- What about typeahead kind of queries ? Should they be put in some special
-  explore command ?
+Moreover, it also allows you to execute arbitrary command on the Portus' context
+if your instance is running locally:
+
+```bash
+$ portusctl exec cat .ruby-version
+2.4.2
+```
+
+**portusctl** is **not** stable and it is **under construction**, since both the
+REST API of Portus and this implementation are quite recent.
 
 ## Development
 
