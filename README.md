@@ -63,8 +63,8 @@ You can also install `portusctl` from
 order to install it with zypper you need to perform the following commands:
 
 ```bash
-$ zypper ar -f https://download.opensuse.org/repositories/Virtualization:/containers:/Portus/openSUSE_Leap_42.3/ portus
-$ zypper install portusctl
+% zypper ar -f https://download.opensuse.org/repositories/Virtualization:/containers:/Portus/openSUSE_Leap_42.3/ portus
+% zypper install portusctl
 ```
 
 ## Development

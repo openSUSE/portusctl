@@ -70,13 +70,51 @@ func printValidate(data Validate) error {
 	return messagesError(data.Messages)
 }
 
+func capitalize(str string) string {
+	r, n := utf8.DecodeRuneInString(str)
+	return string(unicode.ToUpper(r)) + str[n:]
+}
+
+func printHealth(data Health) error {
+	success := true
+	keys, values := "", ""
+
+	for k, v := range data {
+		if !globalConfig.quiet {
+			keys += strings.ToUpper(k) + "\t"
+			values += capitalize(v.Message) + "\t"
+		}
+
+		if !v.Success {
+			success = false
+			if globalConfig.quiet {
+				break
+			}
+		}
+	}
+
+	if !globalConfig.quiet {
+		keys = strings.TrimRight(keys, "\t")
+		values = strings.TrimRight(values, "\t")
+
+		w := tabwriter.NewWriter(os.Stdout, 0, 4, 4, ' ', tabwriter.TabIndent)
+		fmt.Fprintln(w, keys)
+		fmt.Fprintln(w, values)
+		w.Flush()
+	}
+
+	if success {
+		return nil
+	}
+	return errors.New("some services are not healthy")
+}
+
 func messagesError(messages map[string][]string) error {
 	str := ""
 	for k, list := range messages {
 		str += k + ":\n"
 		for _, e := range list {
-			r, n := utf8.DecodeRuneInString(e)
-			str += "  - " + string(unicode.ToUpper(r)) + e[n:] + "\n"
+			str += "  - " + capitalize(e) + "\n"
 		}
 	}
 	return errors.New(strings.TrimRight(str, "\n"))
@@ -160,6 +198,13 @@ func prettyPrint(kind int, body []byte, single bool) error {
 			return err
 		}
 		return printValidate(data)
+	case kindHealth:
+		data := Health{}
+		err := json.Unmarshal([]byte(bodyStr), &data)
+		if err != nil {
+			return err
+		}
+		return printHealth(data)
 	default:
 	}
 	return nil

@@ -11,7 +11,7 @@ DatabaseCleaner.clean_with :truncation
 
 Registry.create!(
   name:     'registry',
-  hostname: 'registry.test.lan',
+  hostname: 'registry:5000',
   use_ssl:  false
 )
 

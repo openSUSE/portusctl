@@ -26,7 +26,8 @@ import (
 )
 
 const (
-	pathPrefix = "/api/v1"
+	apiPrefix = "/api"
+	v1Prefix  = apiPrefix + "/v1"
 )
 
 var requestTimeout = 15 * time.Second

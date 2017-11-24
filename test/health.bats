@@ -21,13 +21,15 @@ function setup() {
     __source_environment
 }
 
-@test "fetch one or multiple registries" {
-    portusctl get registries
+@test "health works" {
+    portusctl health
     [ $status -eq 0 ]
-    [[ "${lines[1]}" =~ '1     registry    registry:5000                        false' ]]
+    [[ "${lines[1]}" =~ 'Database is up-to-date' ]]
+    [[ "${lines[1]}" =~ 'is reachable' ]]
+}
 
-    # TODO: show command does not work :/
-    #portusctl get registry 1
-    #[ $status -eq 0 ]
-    #[[ "${lines[1]}" =~ '1     registry    registry.test.lan                        false' ]]
+@test "health does not accept further arguments" {
+    portusctl health another
+    [ $status -eq 1 ]
+    [[ "${lines[0]}" =~ "you don't have to provide arguments for this command" ]]
 }

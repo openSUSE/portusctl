@@ -172,3 +172,28 @@ type Validate struct {
 	Messages map[string][]string `json:"messages"`
 	Valid    bool                `json:"valid"`
 }
+
+// HealthStatus is a component of the /health response.
+type HealthStatus struct {
+	Message string `json:"msg"`
+	Success bool   `json:"success"`
+}
+
+// Health is the response as given by the server on a /health request.
+type Health map[string]HealthStatus
+
+type gitInfo struct {
+	Branch string `json:"branch"`
+	Commit string `json:"commit"`
+	Tag    string `json:"tag"`
+}
+
+// Version represents the response as given by Portus on a /version request
+// (except for the `PortusctlVersion` field, which is expected to be filled by
+// portusctl).
+type Version struct {
+	APIVersions      []string `json:"api-versions"`
+	Git              gitInfo  `json:"git"`
+	PortusctlVersion string   `json:"portusctl-version"`
+	Version          string   `json:"version"`
+}

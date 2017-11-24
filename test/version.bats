@@ -21,13 +21,12 @@ function setup() {
     __source_environment
 }
 
-@test "fetch one or multiple registries" {
-    portusctl get registries
+@test "version works" {
+    portusctl version
     [ $status -eq 0 ]
-    [[ "${lines[1]}" =~ '1     registry    registry:5000                        false' ]]
+    [[ "${lines[1]}" =~ '0.1.0' ]]
 
-    # TODO: show command does not work :/
-    #portusctl get registry 1
-    #[ $status -eq 0 ]
-    #[[ "${lines[1]}" =~ '1     registry    registry.test.lan                        false' ]]
+    portusctl version -f json
+    [ $status -eq 0 ]
+    [[ "${lines[0]}" =~ 'portusctl-version' ]]
 }

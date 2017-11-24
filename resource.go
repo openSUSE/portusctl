@@ -34,6 +34,8 @@ const (
 	kindTeam
 	kindUser
 	kindValidate
+	kindHealth
+	kindVersion
 )
 
 // Resource represents a resource as defined by this application.
@@ -79,7 +81,7 @@ func (r *Resource) FullName() string {
 // arguments. The resource prefix will also be considered when building this
 // path.
 func (r *Resource) Path(args []string) string {
-	path := filepath.Join(pathPrefix, r.prefix, r.FullName())
+	path := filepath.Join(v1Prefix, r.prefix, r.FullName())
 	for _, v := range args {
 		path = filepath.Join(path, v)
 	}

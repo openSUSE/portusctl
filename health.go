@@ -1,0 +1,40 @@
+// Copyright (C) 2017 Miquel Sabaté Solà <msabate@suse.com>
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+package main
+
+import (
+	"errors"
+	"path/filepath"
+
+	"gopkg.in/urfave/cli.v1"
+)
+
+// Performs a GET request to the /health endpoint and prints the given result.
+func healthAction(ctx *cli.Context) error {
+	if len(ctx.Args()) != 0 {
+		return errors.New("you don't have to provide arguments for this command")
+	}
+	if err := setFlags(ctx); err != nil {
+		return err
+	}
+
+	path := filepath.Join(v1Prefix, "health")
+	res, err := request("GET", path, "", nil)
+	if err != nil {
+		return err
+	}
+	return printAndQuit(res, kindHealth, false)
+}

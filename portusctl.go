@@ -21,21 +21,6 @@ import (
 	"gopkg.in/urfave/cli.v1"
 )
 
-var gitCommit, version string
-
-func versionString() string {
-	str := version
-
-	if gitCommit != "" {
-		str += fmt.Sprintf(" with commit '%v'", gitCommit)
-	}
-	return fmt.Sprintf(`%v.
-Copyright (C) 2017 Miquel Sabaté Solà <msabate@suse.com>
-License GPLv3+: GNU GPL version 3 or later "<http://gnu.org/licenses/gpl.html>.
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.`, str)
-}
-
 func main() {
 	app := cli.NewApp()
 	app.Name = "portusctl"
@@ -128,6 +113,20 @@ Where <resource> is the resource that you want to fetch.`,
 			},
 		},
 		{
+			Name:      "health",
+			Usage:     "Get health info from Portus",
+			Action:    healthAction,
+			ArgsUsage: " ",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:   "format, f",
+					Value:  "default",
+					Usage:  "The output format. Available options: default and json",
+					EnvVar: "PORTUSCTL_FORMAT",
+				},
+			},
+		},
+		{
 			Name:   "update",
 			Usage:  "Update the given resource",
 			Action: resourceDecorator(update, putAction),
@@ -142,6 +141,20 @@ Where <resource> is the resource that you want to update.`,
 			ArgsUsage: `<resource> [arguments...]
 
 Where <resource> is the resource that you want to validate.`,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:   "format, f",
+					Value:  "default",
+					Usage:  "The output format. Available options: default and json",
+					EnvVar: "PORTUSCTL_FORMAT",
+				},
+			},
+		},
+		{
+			Name:      "version",
+			Usage:     "Print the client and server version information",
+			Action:    versionAction,
+			ArgsUsage: " ",
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "format, f",

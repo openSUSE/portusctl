@@ -29,9 +29,9 @@ function setup() {
     [[ "${lines[2]}" =~ "3     newnamespace                   2         private       false" ]]
 
     portusctl get namespaces
-    [[ "${lines[1]}" =~ "1     registry.test.lan    The global namespace for the registry Registry.    0         public        true" ]]
-    [[ "${lines[2]}" =~ "2     admin                This personal namespace belongs to admin.          1         private       false" ]]
-    [[ "${lines[3]}" =~ "3     newnamespace                                                            2         private       false" ]]
+    [[ "${lines[1]}" =~ "1     registry:5000    The global namespace for the registry Registry.    0         public        true" ]]
+    [[ "${lines[2]}" =~ "2     admin            This personal namespace belongs to admin.          1         private       false" ]]
+    [[ "${lines[3]}" =~ "3     newnamespace                                                        2         private       false" ]]
 }
 
 @test "lists repositories in namespace" {
