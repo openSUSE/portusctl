@@ -158,20 +158,33 @@ func extractArguments(resource *Resource, args []string, validate bool) (map[str
 	return values, nil
 }
 
+// resourceHelper returns an error containing the proper message when a resource
+// was not given.
+func resourceHelper(given string) error {
+	if given != "" {
+		given = fmt.Sprintf("Unknown resource '%v'. ", given)
+	}
+	given += "You must specify one of the following types of resource:\n\n"
+
+	for _, resource := range availableResources {
+		for i := 0; i < len(resource.synonims)-1; i++ {
+			resource.synonims[i] = "'" + resource.synonims[i] + "'"
+		}
+
+		str := "(aka " + strings.Join(resource.synonims[:len(resource.synonims)-1], " or ") + ")"
+		given += "    * " + resource.FullName() + " " + str + "\n"
+	}
+	given += "\nSee the man pages for help and examples."
+	return errors.New(given)
+}
+
 // checkResource checks that the given resource is a valid one, and returns the
 // identifier of the resource. If no resource was given, then the help command
 // is executed.
 func checkResource(resource string, ctx *cli.Context, action int) (*Resource, error) {
-	// TODO: be more helpful: show resources available
-	if resource == "" {
-		cli.ShowAppHelp(ctx)
-		fmt.Println("")
-		return nil, errors.New("You have to provide at least one argument")
-	}
-
 	res := findResource(resource)
 	if res == nil {
-		return nil, fmt.Errorf("unknown resource '%v'", resource)
+		return nil, resourceHelper(resource)
 	}
 
 	// Check that the given action can be perform on the resource.
@@ -180,7 +193,6 @@ func checkResource(resource string, ctx *cli.Context, action int) (*Resource, er
 		return nil, err
 	}
 	return res, nil
-
 }
 
 // resourceDecorator decorates the given function with some checks on the
