@@ -14,10 +14,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+set -e
+
 ROOT_DIR="$( cd "$( dirname "$0" )/../.." && pwd )"
 CNAME="portus_portus_1"
 
+export COVERAGE_DIR=$(mktemp --tmpdir -d portusctl-coverage.XXXXXX)
 cp "$ROOT_DIR/portusctl" "$ROOT_DIR/test/portus/"
+
+export DOCKER_COVERAGE_DIR=/srv/Portus/tmp/coverage
+LOCAL_COVERAGE_DIR="$ROOT_DIR/test/portus/tmp/coverage"
+rm -rf "$LOCAL_COVERAGE_DIR/*"
 
 # Setup the environment
 if [[ ! "$SKIP_ENV_TESTS" ]]; then
@@ -56,7 +63,6 @@ if [[ ! "$SKIP_ENV_TESTS" ]]; then
     fi
 fi
 
-mkdir -p "$ROOT_DIR/test/portus/tmp"
 
 # Run tests.
 tests=()
@@ -77,5 +83,9 @@ if [[ "$TEARDOWN_TESTS" ]]; then
     docker-compose rm -f
     popd
 fi
+
+# Output coverage and clean.
+$ROOT_DIR/test/bin/collate.awk $COVERAGE_DIR/* $LOCAL_COVERAGE_DIR/* $COVERAGE | sponge $COVERAGE
+#rm -rf "$COVERAGE_DIR"
 
 exit $status

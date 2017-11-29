@@ -68,8 +68,40 @@ function setup() {
     [[ "${lines[0]}" =~ "ID    Username    Email               Admin    NamespaceID    DisplayName" ]]
     [[ "${lines[1]}" =~ "2     msabate     example@test.lan    false    3" ]]
 
-    # No lines from deleting a resource.
+    # No lines from deleting a resource (well, two because of the two cover sentences...)
     portusctl -q delete user 2
     [ $status -eq 0 ]
-    [[ "${#lines[@]}" -eq 0 ]]
+    [[ "${#lines[@]}" -eq 2 ]]
+}
+
+@test "API user, server, token have to be provided" {
+    unset PORTUSCTL_API_USER
+    portusctl get users
+    [ $status -eq 1 ]
+    [[ "${lines[-1]}" =~ "You have to set the user of the API" ]]
+
+    export PORTUSCTL_API_USER="something"
+    unset PORTUSCTL_API_TOKEN
+    portusctl get users
+    [ $status -eq 1 ]
+    [[ "${lines[-1]}" =~ "You have to set the token of your user" ]]
+
+    export PORTUSCTL_API_TOKEN="something"
+    unset PORTUSCTL_API_SERVER
+    portusctl get users
+    [ $status -eq 1 ]
+    [[ "${lines[-1]}" =~ "You have the deliver the URL of the Portus server" ]]
+}
+
+@test "Error on unknown resource" {
+    portusctl get whatever
+    [ $status -eq 1 ]
+    [[ "${lines[0]}" =~ "unknown resource 'whatever'" ]]
+}
+
+@test "Error on unsupported action" {
+    portusctl get at
+    [ $status -eq 1 ]
+    [[ "${lines[0]}" =~ "Action not supported for resource 'application token'" ]]
+
 }

@@ -33,3 +33,22 @@ function setup() {
     [ $status -eq 1 ]
     [[ "${lines[0]}" =~ "you don't have to provide arguments for this command" ]]
 }
+
+@test "API user, server, token have to be provided" {
+    unset PORTUSCTL_API_USER
+    portusctl health
+    [ $status -eq 1 ]
+    [[ "${lines[-1]}" =~ "You have to set the user of the API" ]]
+
+    export PORTUSCTL_API_USER="something"
+    unset PORTUSCTL_API_TOKEN
+    portusctl health
+    [ $status -eq 1 ]
+    [[ "${lines[-1]}" =~ "You have to set the token of your user" ]]
+
+    export PORTUSCTL_API_TOKEN="something"
+    unset PORTUSCTL_API_SERVER
+    portusctl health
+    [ $status -eq 1 ]
+    [[ "${lines[-1]}" =~ "You have the deliver the URL of the Portus server" ]]
+}

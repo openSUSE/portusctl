@@ -50,3 +50,10 @@ config = "export PORTUSCTL_API_USER=admin\n" \
 
 File.write('/srv/Portus/tmp/config.sh', config)
 File.chmod(0o777, '/srv/Portus/tmp/config.sh')
+
+#
+# Clean coverage directory for Docker executions.
+#
+
+require 'fileutils'
+FileUtils.mkdir_p('/srv/Portus/tmp/coverage', mode: 0o777)

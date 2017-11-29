@@ -1,4 +1,4 @@
-#!/usr/bin/env bats -t
+#!/usr/bin/env bash
 # Copyright (C) 2017 Miquel Sabaté Solà <msabate@suse.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -14,20 +14,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-load helpers
+# This file is largely based on previous work by Aleksa Sarai <asarai@suse.de>
 
-function setup() {
-    __setup_db
-    __source_environment
-}
+set -e
 
-@test "exec works" {
-    docker_run portusctl exec rake portus:info
-    [[ "${lines[1]}" =~ "Evaluated configuration:" ]]
-}
+GO="${GO:-go}"
 
-@test "changing the local flag" {
-    docker_run portusctl exec -l /srv rake portus:info
-    [ $status -eq 1 ]
-    [[ "${lines[0]}" =~ "Could not locate Gemfile or .bundle/ directory" ]]
-}
+# Set up the root and coverage directories.
+export ROOT="$(readlink -f "$(dirname "$(readlink -f "$BASH_SOURCE")")/../..")"
+export COVERAGE_DIR=$(mktemp --tmpdir -d portusctl-coverage.XXXXXX)
+
+# Run the tests and collate the results.
+$GO test -v -cover -covermode=count -coverprofile="$(mktemp --tmpdir=$COVERAGE_DIR cov.XXXXX)" -coverpkg=. . 2>/dev/null
+chmod +x $ROOT/test/bin/collate.awk
+$ROOT/test/bin/collate.awk $COVERAGE_DIR/* $COVERAGE | sponge $COVERAGE
+
+# Clean up the coverage directory.
+rm -rf "$COVERAGE_DIR"

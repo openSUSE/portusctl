@@ -137,73 +137,43 @@ func prettyPrint(kind int, body []byte, single bool) error {
 	switch kind {
 	case kindUser:
 		data := Users{}
-		err := json.Unmarshal([]byte(bodyStr), &data)
-		if err != nil {
-			return err
-		}
+		_ = json.Unmarshal([]byte(bodyStr), &data)
 		printList(data)
 	case kindApplicationToken:
 		data := ApplicationTokens{}
-		err := json.Unmarshal([]byte(bodyStr), &data)
-		if err != nil {
-			return err
-		}
+		_ = json.Unmarshal([]byte(bodyStr), &data)
 		printList(data)
 	case kindPlainToken:
 		data := PlainTokens{}
-		err := json.Unmarshal([]byte(bodyStr), &data)
-		if err != nil {
-			return err
-		}
+		_ = json.Unmarshal([]byte(bodyStr), &data)
 		printList(data)
 	case kindTeam:
 		data := Teams{}
-		err := json.Unmarshal([]byte(bodyStr), &data)
-		if err != nil {
-			return err
-		}
+		_ = json.Unmarshal([]byte(bodyStr), &data)
 		printList(data)
 	case kindNamespace:
 		data := Namespaces{}
-		err := json.Unmarshal([]byte(bodyStr), &data)
-		if err != nil {
-			return err
-		}
+		_ = json.Unmarshal([]byte(bodyStr), &data)
 		printList(data)
 	case kindTag:
 		data := Tags{}
-		err := json.Unmarshal([]byte(bodyStr), &data)
-		if err != nil {
-			return err
-		}
+		_ = json.Unmarshal([]byte(bodyStr), &data)
 		printList(data)
 	case kindRegistry:
 		data := Registries{}
-		err := json.Unmarshal([]byte(bodyStr), &data)
-		if err != nil {
-			return err
-		}
+		_ = json.Unmarshal([]byte(bodyStr), &data)
 		printList(data)
 	case kindRepository:
 		data := Repositories{}
-		err := json.Unmarshal([]byte(bodyStr), &data)
-		if err != nil {
-			return err
-		}
+		_ = json.Unmarshal([]byte(bodyStr), &data)
 		printList(data)
 	case kindValidate:
 		data := Validate{}
-		err := json.Unmarshal([]byte(bodyStr), &data)
-		if err != nil {
-			return err
-		}
+		_ = json.Unmarshal([]byte(bodyStr), &data)
 		return printValidate(data)
 	case kindHealth:
 		data := Health{}
-		err := json.Unmarshal([]byte(bodyStr), &data)
-		if err != nil {
-			return err
-		}
+		_ = json.Unmarshal([]byte(bodyStr), &data)
 		return printHealth(data)
 	default:
 	}

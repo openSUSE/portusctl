@@ -15,6 +15,9 @@
 
 # This Makefile has taken lots of ideas and code from openSUSE/umoci by Aleksa Sarai.
 
+# Use bash, so that we can do process substitution.
+SHELL = /bin/bash
+
 GO ?= go
 GO_MD2MAN ?= go-md2man
 CMD ?= portusctl
@@ -37,31 +40,44 @@ DYN_BUILD_FLAGS := $(BUILD_FLAGS) -buildmode=pie -ldflags "-s -w -X main.gitComm
 portusctl: $(GO_SRC)
 	@$(GO) build ${DYN_BUILD_FLAGS} -o $(CMD)
 
+portusctl.cover: $(GO_SRC)
+	@$(GO) test -c -cover -covermode=count -coverpkg=. ${DYN_BUILD_FLAGS} -o ${CMD}
+
 .PHONY: install
 install: $(GO_SRC)
 	@$(GO) install -v ${DYN_BUILD_FLAGS} .
 
 .PHONY: clean
-clean:
+clean: clean-binary
+	@rm -rf main.test portusctl.cov.* test/portus/tmp/coverage/*
+	@rm -f ./man/*.1 ./man/*.out
+
+clean-binary:
 	@rm -rf $(CMD)
-	@rm -f ./man/*.1
-	@rm -f ./man/*.out
 
 #
 # Unit & integration tests.
 #
 
+ifndef COVERAGE
+COVERAGE := $(shell mktemp --dry-run portusctl.cov.XXXXXX)
+endif
+
 .PHONY: test-unit
 test-unit:
-	@go test -v ./...
+	@touch $(COVERAGE) && chmod a+rw $(COVERAGE)
+	@chmod +x ./test/bin/test-unit.sh
+	COVERAGE=$(COVERAGE) ./test/bin/test-unit.sh
 
 .PHONY: test-integration
-test-integration: portusctl
+test-integration: clean-binary portusctl.cover
+	@touch $(COVERAGE) && chmod a+rw $(COVERAGE)
 	@chmod +x ./test/bin/test-integration.sh
-	SKIP_ENV_TESTS="${SKIP_ENV_TESTS}" TEARDOWN_TESTS="${TEARDOWN_TESTS}" ./test/bin/test-integration.sh
+	COVERAGE=$(COVERAGE) SKIP_ENV_TESTS="${SKIP_ENV_TESTS}" TEARDOWN_TESTS="${TEARDOWN_TESTS}" ./test/bin/test-integration.sh
 
 .PHONY: test
 test: test-unit test-integration
+	$(GO) tool cover -func <(grep -v vendor $(COVERAGE)) | sort -k 3gr | ./test/bin/cover.awk -v allow_failure=1
 
 #
 # Validation tools.

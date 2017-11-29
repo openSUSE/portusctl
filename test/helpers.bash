@@ -42,12 +42,30 @@ function __setup_db() {
            bundle exec rails r /srv/Portus/bin/runner.rb
 }
 
-# Wrapper for the main command. Use this instead of running the binary by hand.
+# Wrapper for the main command. Use this instead of running the binary by
+# hand. Coverage part taken from openSUSE/umoci.
 function portusctl() {
-    sane_run $PORTUSCTL $@
+	local cover=()
+    cover+=("-test.coverprofile=$(mktemp -p "$COVERAGE_DIR" portusctl.cov.XXXXXX)")
+    cover+=("__DEVEL--cover-tests")
+
+    sane_run $PORTUSCTL "${cover[@]}" $@
 }
 
 # Wrapper that allows us to run commands inside of the Portus container.
 function docker_run() {
-    sane_run docker exec -e PORTUSCTL=$PORTUSCTL portus_portus_1 $@
+    # Doing the mapping between our local `tmp` file, and the one from the
+    # docker container.
+    ROOT_DIR="$( cd "$( dirname "$BATS_TEST_DIRNAME" )" && pwd )"
+    tmp=$(mktemp -p "$ROOT_DIR/test/portus/tmp/coverage" portusctl.cov.XXXXXX)
+    test=$(basename $tmp)
+
+	local cover=()
+    cover+=("-test.coverprofile=$DOCKER_COVERAGE_DIR/$test")
+    cover+=("__DEVEL--cover-tests")
+
+    # Discard the initial `portusctl` argument, so it's easier to call `sane_run`.
+    shift
+
+    sane_run docker exec -e PORTUSCTL=$PORTUSCTL portus_portus_1 portusctl "${cover[@]}" $@
 }

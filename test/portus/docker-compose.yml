@@ -13,6 +13,8 @@ services:
       - PORTUS_DB_POOL=5
 
       - RAILS_SERVE_STATIC_FILES=true
+
+      - DOCKER_CLEAN_TMP=true
     ports:
       - 3000:3000
     links:

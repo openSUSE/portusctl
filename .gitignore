@@ -5,3 +5,4 @@ man/*.out
 test/portus/tmp
 test/portus/tmp/*
 test/portus/tmp/**/*
+portusctl.cov*

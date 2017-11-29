@@ -24,9 +24,34 @@ function setup() {
 @test "version works" {
     portusctl version
     [ $status -eq 0 ]
-    [[ "${lines[1]}" =~ '0.1.0' ]]
+    [[ "${lines[1]}" =~ 'v1' ]]
 
     portusctl version -f json
     [ $status -eq 0 ]
     [[ "${lines[0]}" =~ 'portusctl-version' ]]
+}
+
+@test "version does not accept further arguments" {
+    portusctl version another
+    [ $status -eq 1 ]
+    [[ "${lines[0]}" =~ "you don't have to provide arguments for this command" ]]
+}
+
+@test "API user, server, token have to be provided" {
+    unset PORTUSCTL_API_USER
+    portusctl version
+    [ $status -eq 1 ]
+    [[ "${lines[-1]}" =~ "You have to set the user of the API" ]]
+
+    export PORTUSCTL_API_USER="something"
+    unset PORTUSCTL_API_TOKEN
+    portusctl version
+    [ $status -eq 1 ]
+    [[ "${lines[-1]}" =~ "You have to set the token of your user" ]]
+
+    export PORTUSCTL_API_TOKEN="something"
+    unset PORTUSCTL_API_SERVER
+    portusctl version
+    [ $status -eq 1 ]
+    [[ "${lines[-1]}" =~ "You have the deliver the URL of the Portus server" ]]
 }

@@ -46,10 +46,7 @@ func generateBody(resource *Resource, args []string) ([]byte, error) {
 	} else {
 		b, e = json.Marshal(map[string]map[string]string{resource.bundler: values})
 	}
-	if e != nil {
-		return nil, fmt.Errorf("Internal error: %v", e)
-	}
-	return b, nil
+	return b, e
 }
 
 func buildRequest(method, path, query string, body []byte) (*http.Request, error) {
@@ -58,10 +55,7 @@ func buildRequest(method, path, query string, body []byte) (*http.Request, error
 	u.RawQuery = query
 
 	reader := bytes.NewBuffer(body)
-	req, err := http.NewRequest(method, u.String(), reader)
-	if err != nil {
-		return nil, fmt.Errorf("Could not build request: %v", err)
-	}
+	req, _ := http.NewRequest(method, u.String(), reader)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("PORTUS-AUTH", fmt.Sprintf("%s:%s", globalConfig.user, globalConfig.token))
 	return req, nil

@@ -69,6 +69,8 @@ order to install it with zypper you need to perform the following commands:
 
 ## Development
 
+ON SPONGE command from `moreutils`
+
 You could build this project as any other Go binary with `go build`, but this is
 not recommended. Instead, use the default make target:
 
@@ -159,7 +161,7 @@ run the following command:
 $ make doc
 ```
 
-### Other make targets
+### Code coverage
 
 If you want to perform both unit and integration testing, then you can simply
 call the `test` target like this:
@@ -168,12 +170,19 @@ call the `test` target like this:
 $ make test
 ```
 
-If you want to run all tests (including validations), you can run the same
-target the CI environment will use:
+This target has one extra benefit: it will also check for code coverage. If code
+coverage is below an expected threshold, then you will get a report about.
 
-```
-$ make ci
-```
+### What the CI will end up running
+
+The CI will only run the `ci` target, which will in turn:
+
+1. Run all validators.
+2. Run unit & integration tests.
+3. Perform checks on code coverage.
+
+It is recommended that you perform `make ci` before submitting a pull request,
+and check that it ran successfully.
 
 ## License
 
