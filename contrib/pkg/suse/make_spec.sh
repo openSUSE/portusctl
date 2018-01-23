@@ -81,6 +81,8 @@ BuildRequires:  go-go-md2man
 BuildRequires:  gcc6-go >= 6.1
 %endif
 BuildRequires:  fdupes
+BuildRequires:  moreutils
+BuildRequires:  git
 BuildRoot:      %{_tmppath}/%{name}-%{raw_version}-build
 %if 0%{?is_opensuse}
 ExcludeArch:    s390x

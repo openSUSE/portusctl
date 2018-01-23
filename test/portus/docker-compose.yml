@@ -2,17 +2,20 @@ version: '2'
 
 services:
   portus:
-    image: opensuse/portus:development
-    command: bash /srv/Portus/examples/development/compose/init
+    image: opensuse/portus:head
     environment:
-      - PORTUS_MACHINE_FQDN_VALUE=172.17.0.1
-      - PORTUS_PUMA_HOST=0.0.0.0:3000
+      - PORTUS_MACHINE_FQDN_VALUE=${MACHINE_FQDN}
 
       - PORTUS_DB_HOST=db
-      - PORTUS_DB_PASSWORD=portus
+      - PORTUS_DB_PASSWORD=${DATABASE_PASSWORD}
       - PORTUS_DB_POOL=5
 
-      - RAILS_SERVE_STATIC_FILES=true
+      - PORTUS_SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - PORTUS_KEY_PATH=/certificates/portus.key
+      - PORTUS_PASSWORD=${PORTUS_PASSWORD}
+
+      - PORTUS_CHECK_SSL_USAGE_ENABLED='false'
+      - RAILS_SERVE_STATIC_FILES='true'
 
       - DOCKER_CLEAN_TMP=true
     ports:
@@ -23,6 +26,7 @@ services:
       - ./runner.rb:/srv/Portus/bin/runner.rb:ro
       - ./portusctl:/usr/local/bin/portusctl
       - ./tmp:/srv/Portus/tmp
+      - ./secrets:/certificates:ro
 
   db:
     image: library/mariadb:10.0.23
@@ -30,30 +34,26 @@ services:
       MYSQL_ROOT_PASSWORD: portus
 
   registry:
-    image: library/registry:2.3.1
+    image: library/registry:2.6
     environment:
-      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /registry_data
-      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+      # Authentication
+      REGISTRY_AUTH_TOKEN_REALM: http://${MACHINE_FQDN}:3000/v2/token
+      REGISTRY_AUTH_TOKEN_SERVICE: ${MACHINE_FQDN}:5000
+      REGISTRY_AUTH_TOKEN_ISSUER: ${MACHINE_FQDN}
+      REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /secrets/portus.crt
 
-      REGISTRY_HTTP_ADDR: 0.0.0.0:5000
-      REGISTRY_HTTP_DEBUG_ADDR: 0.0.0.0:5001
-
-      REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE: /etc/docker/registry/portus.crt
-
-      REGISTRY_AUTH_TOKEN_REALM: http://172.17.0.1:3000/v2/token
-      REGISTRY_AUTH_TOKEN_SERVICE: 172.17.0.1:5000
-      REGISTRY_AUTH_TOKEN_ISSUER: 172.17.0.1
-
+      # Portus endpoint
       REGISTRY_NOTIFICATIONS_ENDPOINTS: >
         - name: portus
-          url: http://172.17.0.1:3000/v2/webhooks/events
+          url: http://${MACHINE_FQDN}:3000/v2/webhooks/events
           timeout: 2000ms
           threshold: 5
           backoff: 1s
     volumes:
       - /registry_data
-      - ./portus.crt:/etc/docker/registry/portus.crt:ro
+      - ./secrets:/secrets:ro
     ports:
       - 5000:5000
+      - 5001:5001 # required to access debug service
     links:
       - portus
