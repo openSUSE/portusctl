@@ -2,8 +2,14 @@
 # First of all, clean up the environment.
 #
 
-require 'database_cleaner'
-DatabaseCleaner.clean_with :truncation
+ActiveRecord::Base.establish_connection
+ActiveRecord::Base.connection.execute('SET FOREIGN_KEY_CHECKS = 0')
+ActiveRecord::Base.connection.tables.each do |table|
+  next if table == 'schema_migrations'
+
+  ActiveRecord::Base.connection.execute("TRUNCATE #{table}")
+end
+ActiveRecord::Base.connection.execute('SET FOREIGN_KEY_CHECKS = 1')
 
 #
 # This registry is fake, but we need to create something :^)

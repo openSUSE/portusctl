@@ -23,11 +23,18 @@ function setup() {
 
 @test "exec works" {
     docker_run portusctl exec rake portus:info
-    [[ "${lines[1]}" =~ "Evaluated configuration:" ]]
+    [[ "${lines[2]}" =~ "Evaluated configuration:" ]]
 }
 
-@test "changing the local flag" {
+@test "changing the local flag fails because bundle is not installed there" {
     docker_run portusctl exec -l /srv rake portus:info
     [ $status -eq 1 ]
-    [[ "${lines[0]}" =~ "Could not locate Gemfile or .bundle/ directory" ]]
+    # Since it's not in the local directory, it returns the global.
+    [[ "${lines[1]}" =~ "\"bundle\": executable file not found" ]]
+}
+
+@test "changing the vendor flag results in error since bundler is not installed globally" {
+    docker_run portusctl exec --vendor=false rake portus:info
+    [ $status -eq 1 ]
+    [[ "${lines[0]}" =~ "\"bundle\": executable file not found" ]]
 }

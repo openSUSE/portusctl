@@ -36,21 +36,17 @@ if [[ ! "$SKIP_ENV_TESTS" ]]; then
 
     RETRY=1
     while [ $RETRY -ne 0 ]; do
-        case $(SKIP_MIGRATION=1 docker exec $CNAME bundle exec rails r /srv/Portus/bin/check_db.rb | grep DB) in
+        msg=$(SKIP_MIGRATION=1 docker exec $CNAME portusctl exec rails r /srv/Portus/bin/check_db.rb)
+        case $(echo "$msg" | grep DB) in
             "DB_READY")
                 echo "Database ready"
                 break
                 ;;
+            *)
+                echo "Database is not ready yet:"
+                echo $msg
+                ;;
         esac
-
-        sleep 5
-    done
-
-    while [ $RETRY -ne 0 ]; do
-        if [[ ! $(docker exec $CNAME bundle exec rake db:migrate:status | grep down | grep -v WARNING) ]]; then
-            echo "Migration done"
-            break
-        fi
 
         sleep 5
     done

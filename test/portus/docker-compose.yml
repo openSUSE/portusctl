@@ -18,6 +18,7 @@ services:
       - RAILS_SERVE_STATIC_FILES='true'
 
       - DOCKER_CLEAN_TMP=true
+      - DOCKER_DEVEL_COVER_TESTS=true
     ports:
       - 3000:3000
     links:

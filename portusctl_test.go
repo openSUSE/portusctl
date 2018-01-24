@@ -28,10 +28,8 @@ import (
 // this hack outside of a test suite. Read the following link for more info:
 //   https://www.cyphar.com/blog/post/20170412-golang-integration-coverage
 func TestMain(t *testing.T) {
-	var (
-		args []string
-		run  bool
-	)
+	var args []string
+	run := os.Getenv("DOCKER_DEVEL_COVER_TESTS") != ""
 
 	for _, arg := range os.Args {
 		switch {

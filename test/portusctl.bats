@@ -96,7 +96,7 @@ function setup() {
 @test "Error on unknown resource" {
     portusctl get whatever
     [ $status -eq 1 ]
-    [[ "${lines[0]}" =~ "unknown resource 'whatever'" ]]
+    [[ "${lines[0]}" =~ "Unknown resource 'whatever'" ]]
 }
 
 @test "Error on unsupported action" {
