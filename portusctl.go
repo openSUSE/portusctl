@@ -89,7 +89,7 @@ Portus instance. The successive arguments will be passed also to this command.`,
 					Usage:  "The location on the current host of your Portus instance",
 					EnvVar: "PORTUSCTL_EXEC_LOCATION",
 				},
-				cli.BoolFlag{
+				cli.BoolTFlag{
 					Name:   "vendor, v",
 					Usage:  "Use the local 'vendor' directory as the gem environment",
 					EnvVar: "PORTUSCTL_EXEC_VENDOR",
