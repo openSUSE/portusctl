@@ -24,9 +24,14 @@ CMD ?= portusctl
 GO_SRC = $(shell find . -name \*.go)
 
 # Version information.
+GIT := $(shell command -v git 2> /dev/null)
 VERSION := $(shell cat ./VERSION)
-COMMIT_NO := $(shell git rev-parse HEAD 2> /dev/null || true)
-COMMIT := $(if $(shell git status --porcelain --untracked-files=no),"${COMMIT_NO}-dirty","${COMMIT_NO}")
+COMMIT_NO := $(if $GIT,$(shell git rev-parse HEAD 2> /dev/null),"")
+ifdef $GIT
+  COMMIT := $(if $(shell git status --porcelain --untracked-files=no),"${COMMIT_NO}-dirty","${COMMIT_NO}")
+else
+  COMMIT := "${COMMIT_NO}"
+endif
 
 # Test integration
 SKIP_ENV_TESTS ?=

@@ -81,8 +81,6 @@ BuildRequires:  go-go-md2man
 BuildRequires:  gcc6-go >= 6.1
 %endif
 BuildRequires:  fdupes
-BuildRequires:  moreutils
-BuildRequires:  git
 BuildRoot:      %{_tmppath}/%{name}-%{raw_version}-build
 %if 0%{?is_opensuse}
 ExcludeArch:    s390x
@@ -138,6 +136,7 @@ done
 
 %check
 export GOPATH=\$HOME/go
+export SKIP_COVERAGE=true
 make test-unit
 
 %files

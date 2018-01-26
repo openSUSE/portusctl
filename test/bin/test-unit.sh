@@ -26,8 +26,10 @@ export COVERAGE_DIR=$(mktemp --tmpdir -d portusctl-coverage.XXXXXX)
 
 # Run the tests and collate the results.
 $GO test -v -cover -covermode=count -coverprofile="$(mktemp --tmpdir=$COVERAGE_DIR cov.XXXXX)" -coverpkg=. . 2>/dev/null
-chmod +x $ROOT/test/bin/collate.awk
-$ROOT/test/bin/collate.awk $COVERAGE_DIR/* $COVERAGE | sponge $COVERAGE
+if [[ -z "$SKIP_COVERAGE" ]]; then
+  chmod +x $ROOT/test/bin/collate.awk
+  $ROOT/test/bin/collate.awk $COVERAGE_DIR/* $COVERAGE | sponge $COVERAGE
+fi
 
 # Clean up the coverage directory.
 rm -rf "$COVERAGE_DIR"
