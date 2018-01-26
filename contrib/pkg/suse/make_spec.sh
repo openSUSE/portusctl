@@ -76,7 +76,7 @@ Url:            https://github.com/openSUSE/portusctl
 Source:         ${SAFE_BRANCH}.tar.gz
 %ifarch %{go_arches}
 BuildRequires:  go >= 1.6
-BuildRequires:  go-go-md2man
+BuildRequires:  go-md2man
 %else
 BuildRequires:  gcc6-go >= 6.1
 %endif
