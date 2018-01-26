@@ -17,73 +17,62 @@ package main
 
 import (
 	"errors"
+	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"gopkg.in/urfave/cli.v1"
 )
 
-// TODO: mssola: the whole `vendor` feature needs proper integration
-// testing. None has been provided because the development docker image being
-// used is different on this regard. I'll provide integration tests once we fix
-// the production docker image.
-
 const (
+	// defaultPath is the path taken by default as the server location. This is
+	// the path where Portus will be located in the Docker image, so it's
+	// probably not a good idea to move away from this default value.
 	defaultPath = "/srv/Portus"
 )
 
-var rubyRegexp = regexp.MustCompile(`^ruby\s+(\d+)\.(\d+)\.(\d+).+`)
-
-// getOutputFromCommand runs a command under the `bundle exec` environment, and
-// at the directory specified by the dir parameter. Returns the combined output
-// if successful, otherwise it returns an error.
-func getOutputFromCommand(args []string, dir string) (string, error) {
-	cmd := exec.Command("bundle", append([]string{"exec"}, args...)...)
-	cmd.Dir = dir
-	b, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(b)), nil
-}
-
 // rubyVersion returns the current ruby version.
 func rubyVersion(local string) (string, error) {
-	output, err := getOutputFromCommand([]string{"ruby", "-v"}, local)
+	path := filepath.Join(local, ".ruby-version")
+	contents, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
 
-	match := rubyRegexp.FindStringSubmatch(output)
-	if len(match) != 4 {
-		return "", errors.New("something went wrong")
+	return strings.TrimSpace(string(contents)), nil
+}
+
+// Returns both the ruby version and the base path for bundled ruby gems.
+func pathBase(dir string) (string, string, error) {
+	ruby, err := rubyVersion(dir)
+	if err != nil {
+		return "", "", err
 	}
-	return strings.Join(match[1:], "."), nil
+
+	base := filepath.Join(dir, "vendor/bundle/ruby", ruby)
+	return ruby, base, nil
 }
 
 // vendorRubyPath returns some paths in the form of environment variables
 // targeting a local `vendor` directory of the Portus instance.
 func vendorRubyPath(dir string) ([]string, error) {
-	ruby, err := rubyVersion(dir)
+	_, base, err := pathBase(dir)
 	if err != nil {
 		return nil, err
 	}
 
-	base := filepath.Join(dir, "vendor/bundle/ruby", ruby)
-
-	cmd := []string{"ls", "-d", filepath.Join(base, "bundler*")}
-	lib, err := getOutputFromCommand(cmd, dir)
+	lib, err := filepath.Glob(filepath.Join(base, "gems", "bundler*"))
 	if err != nil {
 		return nil, err
 	}
 
 	return []string{
+		"RAILS_ENV=production",
 		"GEM_PATH=" + base,
-		"BUNDLER_BIN=" + filepath.Join(base, "bin/bundler.ruby"+ruby[:3]),
-		"RUBYLIB=" + filepath.Join(lib, "lib"),
+		"RUBYLIB=" + filepath.Join(lib[0], "lib"),
 	}, nil
 }
 
@@ -101,12 +90,29 @@ func environment(ctx *cli.Context) []string {
 	return environment
 }
 
+// Returns the `bundle` command to be used. The command being returned depends
+// on whether the vendor flag was set to true (default) or not. If the vendor
+// flag is set but no local bundler binary could be found, then the global
+// version is returned.
+func bundleCommand(ctx *cli.Context) string {
+	if !ctx.Bool("vendor") {
+		return "bundle"
+	}
+
+	ruby, base, err := pathBase(ctx.String("local"))
+	if err != nil {
+		log.Printf("Could not find local bundler: %v", err.Error())
+		return "bundle"
+	}
+	return filepath.Join(base, "bin/bundler.ruby"+ruby[:3])
+}
+
 func execCmd(c *cli.Context) error {
 	if len(c.Args()) == 0 {
 		return errors.New("you have to provide the command to be executed")
 	}
 
-	cmd := exec.Command("bundle", append([]string{"exec"}, c.Args()...)...)
+	cmd := exec.Command(bundleCommand(c), append([]string{"exec"}, c.Args()...)...)
 	cmd.Dir = c.String("local")
 	cmd.Env = environment(c)
 	cmd.Stdout = os.Stdout

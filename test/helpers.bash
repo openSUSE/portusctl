@@ -39,7 +39,7 @@ function __setup_db() {
     docker exec \
            -e PORTUSCTL=$PORTUSCTL \
            portus_portus_1 \
-           bundle exec rails r /srv/Portus/bin/runner.rb
+           portusctl exec rails r /srv/Portus/bin/runner.rb
 }
 
 # Wrapper for the main command. Use this instead of running the binary by
