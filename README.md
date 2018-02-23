@@ -1,4 +1,4 @@
-# portusctl [![Build Status](https://travis-ci.org/openSUSE/portusctl.svg?branch=master)](https://travis-ci.org/openSUSE/portusctl)
+# portusctl [![Build Status](https://travis-ci.org/openSUSE/portusctl.svg?branch=master)](https://travis-ci.org/openSUSE/portusctl) [![Go Report Card](https://goreportcard.com/badge/github.com/openSUSE/portusctl)](https://goreportcard.com/report/github.com/openSUSE/portusctl)
 
 **portusctl** is a client for your [Portus](https://github.com/SUSE/Portus)
 instance. It allows you to access the REST API offered by Portus and present the
