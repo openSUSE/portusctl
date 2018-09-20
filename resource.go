@@ -71,6 +71,11 @@ func (r *Resource) String() string {
 	return strings.Replace(singular, "_", " ", -1)
 }
 
+func (r *Resource) PluralName() string {
+	str := capitalize(r.FullName())
+	return strings.Replace(str, "_", " ", -1)
+}
+
 // FullName returns the name to be used for URL paths representing this
 // resource.
 func (r *Resource) FullName() string {

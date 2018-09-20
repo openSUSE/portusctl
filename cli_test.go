@@ -278,3 +278,35 @@ func TestExtractArgumentsInvalidArgument(t *testing.T) {
 		t.Fatalf("Expected error with message: '%v';, '%v' was given", msg, err.Error())
 	}
 }
+
+func TestAction(t *testing.T) {
+	res := action(getAction)
+	if res != "get" {
+		t.Fatalf("Expecting 'get', got '%v'", res)
+	}
+
+	res = action(postAction)
+	if res != "create" {
+		t.Fatalf("Expecting 'create', got '%v'", res)
+	}
+
+	res = action(putAction)
+	if res != "update" {
+		t.Fatalf("Expecting 'update', got '%v'", res)
+	}
+
+	res = action(deleteAction)
+	if res != "delete" {
+		t.Fatalf("Expecting 'delete', got '%v'", res)
+	}
+
+	res = action(validateAction)
+	if res != "validate" {
+		t.Fatalf("Expecting 'validate', got '%v'", res)
+	}
+
+	res = action(100000)
+	if res != "<unknown>" {
+		t.Fatalf("Expecting '<unknown>', got '%v'", res)
+	}
+}
