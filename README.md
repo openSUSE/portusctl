@@ -69,8 +69,6 @@ order to install it with zypper you need to perform the following commands:
 
 ## Development
 
-ON SPONGE command from `moreutils`
-
 You could build this project as any other Go binary with `go build`, but this is
 not recommended. Instead, use the default make target:
 
@@ -172,6 +170,8 @@ $ make test
 
 This target has one extra benefit: it will also check for code coverage. If code
 coverage is below an expected threshold, then you will get a report about.
+
+Note though that you need the `sponge` command installed on your system.
 
 ### What the CI will end up running
 
