@@ -185,7 +185,7 @@ func listSynonims(prefix string, synonims []string) string {
 		out = append(out, "'"+synonims[i]+"'")
 	}
 
-	return "(" + prefix + " " + strings.Join(out[:len(out)], " or ") + ")"
+	return "(" + prefix + " " + strings.Join(out[:], " or ") + ")"
 }
 
 // resourceHelper returns an error containing the proper message when a resource

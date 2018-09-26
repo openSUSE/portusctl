@@ -34,6 +34,16 @@ function setup() {
     [[ "${lines[3]}" =~ "3     newnamespace                                                        2         private       false" ]]
 }
 
+@test "create fails when the name has already been picked" {
+    portusctl create team name=newteam
+    portusctl create namespace name=newnamespace team=newteam
+    [ $status -eq 0 ]
+
+    portusctl create namespace name=newnamespace team=newteam
+    [ $status -eq 1 ]
+    [[ "${lines[0]}" =~ "- Name: has already been taken" ]]
+}
+
 @test "lists repositories in namespace" {
     portusctl get n 2 repositories
     [ $status -eq 0 ]
@@ -48,6 +58,5 @@ function setup() {
 
     portusctl validate namespace name=admin
     [ $status -eq 1 ]
-    [[ "${lines[0]}" =~ "name:" ]]
-    [[ "${lines[1]}" =~ "- Has already been taken" ]]
+    [[ "${lines[0]}" =~ "- Name: has already been taken" ]]
 }

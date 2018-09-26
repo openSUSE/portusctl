@@ -71,6 +71,7 @@ func (r *Resource) String() string {
 	return strings.Replace(singular, "_", " ", -1)
 }
 
+// PluralName returns the plural version of the resource.
 func (r *Resource) PluralName() string {
 	str := capitalize(r.FullName())
 	return strings.Replace(str, "_", " ", -1)

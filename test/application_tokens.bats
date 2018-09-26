@@ -45,8 +45,7 @@ function setup() {
 
     portusctl create application_tokens id=1 application=something5
     [ $status -eq 1 ]
-    [[ "${lines[0]}" =~ "base:" ]]
-    [[ "${lines[1]}" =~ "- Users cannot have more than 5 application tokens" ]]
+    [[ "${lines[0]}" =~ "- Base: Users cannot have more than 5 application tokens" ]]
 }
 
 @test "an application token cannot be updated" {

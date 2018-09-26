@@ -110,14 +110,12 @@ func printHealth(data Health) error {
 }
 
 func messagesError(messages map[string][]string) error {
-	str := ""
-	for k, list := range messages {
-		str += k + ":\n"
-		for _, e := range list {
-			str += "  - " + capitalize(e) + "\n"
-		}
+	str := []string{}
+
+	for k, v := range messages {
+		str = append(str, "- "+capitalize(k)+": "+strings.Join(v, ". "))
 	}
-	return errors.New(strings.TrimRight(str, "\n"))
+	return errors.New(strings.Join(str, "\n"))
 }
 
 func prettyPrint(kind int, body []byte, single bool) error {

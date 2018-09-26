@@ -15,7 +15,10 @@
 
 package main
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 // User represents a Portus user.
 type User struct {
@@ -79,13 +82,37 @@ type Namespace struct {
 	ID          int64  `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	TeamID      int64  `json:"team_id"`
+	TeamID      int64  `json:"-"`
 	Visibility  string `json:"visibility"`
 	Global      bool   `json:"global"`
 }
 
-func (e Namespace) String() string {
-	return tabifyStruct(e)
+// UnmarshalJSON is used as a workaround in order to properly unmarshal JSON
+// namespaces.
+func (n *Namespace) UnmarshalJSON(data []byte) error {
+	temp := struct {
+		ID          int64  `json:"id"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
+		Team        Team   `json:"team"`
+		Visibility  string `json:"visibility"`
+		Global      bool   `json:"global"`
+	}{}
+
+	if err := json.Unmarshal([]byte(data), &temp); err != nil {
+		return err
+	}
+	n.ID = temp.ID
+	n.Name = temp.Name
+	n.Description = temp.Description
+	n.TeamID = temp.Team.ID
+	n.Visibility = temp.Visibility
+	n.Global = temp.Global
+	return nil
+}
+
+func (n Namespace) String() string {
+	return tabifyStruct(n)
 }
 
 // Namespaces is a list of namespaces.
