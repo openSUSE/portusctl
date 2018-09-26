@@ -16,6 +16,8 @@
 
 set -e
 
+start=`date +%s`
+
 ROOT_DIR="$( cd "$( dirname "$0" )/../.." && pwd )"
 CNAME="portus_portus_1"
 
@@ -83,5 +85,11 @@ fi
 # Output coverage and clean.
 $ROOT_DIR/test/bin/collate.awk $COVERAGE_DIR/* $LOCAL_COVERAGE_DIR/* $COVERAGE | sponge $COVERAGE
 #rm -rf "$COVERAGE_DIR"
+
+end=`date +%s`
+dt=$(echo "$end - $start" | bc)
+dm=$(echo "$dt/60" | bc)
+ds=$(echo "$dt-60*$dm" | bc)
+echo "Running integration tests took ${dm}m${ds}s"
 
 exit $status

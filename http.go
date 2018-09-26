@@ -89,18 +89,19 @@ func handleCode(response *http.Response) error {
 		json.NewDecoder(response.Body).Decode(&target)
 		return messagesError(target["errors"])
 	} else if code == http.StatusUnauthorized || code == http.StatusForbidden {
-		key := "errors"
-		if code == http.StatusUnauthorized {
-			key = "error"
-		}
 		target := make(map[string]string)
 		defer response.Body.Close()
 		json.NewDecoder(response.Body).Decode(&target)
-		return errors.New(target[key])
+		return errors.New(target["message"])
 	} else if code == http.StatusNotFound {
 		return errors.New("Resource not found")
 	} else if code == http.StatusMethodNotAllowed {
 		return errors.New("Action not allowed on given resource")
+	} else if code == http.StatusUnprocessableEntity {
+		target := make(map[string]map[string][]string)
+		defer response.Body.Close()
+		json.NewDecoder(response.Body).Decode(&target)
+		return messagesError(target["message"])
 	} else if code >= http.StatusInternalServerError && code <= http.StatusNetworkAuthenticationRequired {
 		fmt.Printf("Portus faced an error:\n\n")
 		target := make(map[string]string)

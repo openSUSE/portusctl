@@ -37,6 +37,24 @@ const (
 	validateAction
 )
 
+// Returns the string value of the given action identifier.
+func action(act int) string {
+	switch act {
+	case getAction:
+		return "get"
+	case postAction:
+		return "create"
+	case putAction:
+		return "update"
+	case deleteAction:
+		return "delete"
+	case validateAction:
+		return "validate"
+	default:
+		return "<unknown>"
+	}
+}
+
 type config struct {
 	user   string
 	token  string
@@ -158,6 +176,18 @@ func extractArguments(resource *Resource, args []string, validate bool) (map[str
 	return values, nil
 }
 
+// Returns a string like this: "(<prefix> '<element1>' or '<element2>' or ...)";
+// where <element1> and <element2> are elements from the given synonims.
+func listSynonims(prefix string, synonims []string) string {
+	out := []string{}
+
+	for i := 0; i < len(synonims); i++ {
+		out = append(out, "'"+synonims[i]+"'")
+	}
+
+	return "(" + prefix + " " + strings.Join(out[:], " or ") + ")"
+}
+
 // resourceHelper returns an error containing the proper message when a resource
 // was not given.
 func resourceHelper(given string) error {
@@ -167,12 +197,8 @@ func resourceHelper(given string) error {
 	given += "You must specify one of the following types of resource:\n\n"
 
 	for _, resource := range availableResources {
-		for i := 0; i < len(resource.synonims)-1; i++ {
-			resource.synonims[i] = "'" + resource.synonims[i] + "'"
-		}
-
-		str := "(aka " + strings.Join(resource.synonims[:len(resource.synonims)-1], " or ") + ")"
-		given += "    * " + resource.FullName() + " " + str + "\n"
+		syn := resource.synonims[0 : len(resource.synonims)-1]
+		given += "    * " + resource.FullName() + " " + listSynonims("aka", syn) + "\n"
 	}
 	given += "\nSee the man pages for help and examples."
 	return errors.New(given)

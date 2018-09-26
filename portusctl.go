@@ -97,6 +97,15 @@ Portus instance. The successive arguments will be passed also to this command.`,
 			},
 		},
 		{
+			Name:   "explain",
+			Usage:  "Fetch the documentation of the available resources",
+			Action: explainAction,
+			ArgsUsage: `[resource]
+
+Where <resource> is the resource that you want to fetch. If no resource is
+given, then it will list all the available resources.`,
+		},
+		{
 			Name:   "get",
 			Usage:  "Fetches info for the given resource",
 			Action: resourceDecorator(get, getAction),

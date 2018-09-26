@@ -47,7 +47,11 @@ $ portusctl exec cat .ruby-version
 2.4.2
 ```
 
-**portusctl** is **not** stable and it is **under construction**.
+**portusctl** does **not** implement all the API entrypoints available as of
+Portus `v2.4`. You can follow the progress of this
+[here](https://github.com/openSUSE/portusctl/issues/8). The **exec** command is
+considered stable already, and that's why **portusctl** is included inside of
+the Portus Docker image as of `v2.4`.
 
 ## Installation
 
@@ -68,8 +72,6 @@ order to install it with zypper you need to perform the following commands:
 ```
 
 ## Development
-
-ON SPONGE command from `moreutils`
 
 You could build this project as any other Go binary with `go build`, but this is
 not recommended. Instead, use the default make target:
@@ -172,6 +174,8 @@ $ make test
 
 This target has one extra benefit: it will also check for code coverage. If code
 coverage is below an expected threshold, then you will get a report about.
+
+Note though that you need the `sponge` command installed on your system.
 
 ### What the CI will end up running
 

@@ -52,8 +52,8 @@ function setup() {
 
     # NOTE: I'm not checking the "email" and the "username" lines themselves
     # because they might come unsorted, so it's not really safe.
-    [[ "${lines[1]}" =~ "- Has already been taken" ]]
-    [[ "${lines[3]}" =~ "- Has already been taken" ]]
+    [[ "${lines[0]}" =~ "has already been taken" ]]
+    [[ "${lines[1]}" =~ "has already been taken" ]]
 }
 
 @test "fetch a single user" {
