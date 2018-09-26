@@ -53,6 +53,11 @@ Portus `v2.4`. You can follow the progress of this
 considered stable already, and that's why **portusctl** is included inside of
 the Portus Docker image as of `v2.4`.
 
+**Note well**: portusctl is targetting the API from the Portus' `master` branch,
+which is still under heavy development. Hence, we recommend using both the
+latest portusctl together with the latest commit of Portus. This situation will
+change once the API starts to stabilize.
+
 ## Installation
 
 You can install `portusctl` from source by cloning this repository and then
@@ -173,7 +178,7 @@ $ make test
 ```
 
 This target has one extra benefit: it will also check for code coverage. If code
-coverage is below an expected threshold, then you will get a report about.
+coverage is below an expected threshold, then you will get a report about it.
 
 Note though that you need the `sponge` command installed on your system.
 
