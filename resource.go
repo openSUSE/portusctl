@@ -36,6 +36,7 @@ const (
 	kindValidate
 	kindHealth
 	kindVersion
+	kindBootstrap
 )
 
 // Resource represents a resource as defined by this application.
@@ -208,7 +209,7 @@ var availableResources = []Resource{
 // createUpdate is a method to share code between the `create` and the `update`
 // methods.
 func createUpdate(resource *Resource, method string, args, prefix []string) error {
-	b, err := generateBody(resource, args)
+	b, err := generateBody(resource, args, false)
 	if err != nil {
 		return err
 	}

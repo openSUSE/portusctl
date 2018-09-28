@@ -173,8 +173,18 @@ func prettyPrint(kind int, body []byte, single bool) error {
 		data := Health{}
 		_ = json.Unmarshal([]byte(bodyStr), &data)
 		return printHealth(data)
+	case kindBootstrap:
+		data := PlainTokens{}
+		_ = json.Unmarshal([]byte(bodyStr), &data)
+		return printBootstrap(data[0].PlainToken)
 	default:
 	}
+	return nil
+}
+
+func printBootstrap(token string) error {
+	fmt.Printf("You can now use the user '%v' with the following token: %v\n",
+		retainedValues["username"], token)
 	return nil
 }
 

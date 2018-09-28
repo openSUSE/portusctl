@@ -1,4 +1,4 @@
-// Copyright (C) 2017-2018 Miquel Sabaté Solà <msabate@suse.com>
+// Copyright (C) 2018 Miquel Sabaté Solà <msabate@suse.com>
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,25 +16,29 @@
 package main
 
 import (
-	"errors"
 	"path/filepath"
 
 	"gopkg.in/urfave/cli.v1"
 )
 
-// Performs a GET request to the /health endpoint and prints the given result.
-func healthAction(ctx *cli.Context) error {
-	if len(ctx.Args()) != 0 {
-		return errors.New("you don't have to provide arguments for this command")
-	}
-	if err := setFlags(ctx, false); err != nil {
+var retainedValues map[string]string
+
+func bootstrapCmd(c *cli.Context) error {
+	if err := setFlags(c, true); err != nil {
 		return err
 	}
 
-	path := filepath.Join(v1Prefix, "health")
-	res, err := request("GET", path, "", nil)
-	if err != nil {
-		return err
+	retainedValues = make(map[string]string)
+
+	resource := findResourceByID(kindUser)
+	b, err := generateBody(resource, c.Args(), true)
+	if err == nil {
+		path := filepath.Join(resource.Path(nil), "bootstrap")
+		res, err := request("POST", path, "", b)
+		if err != nil {
+			return err
+		}
+		return printAndQuit(res, kindBootstrap, true)
 	}
-	return printAndQuit(res, kindHealth, false)
+	return err
 }

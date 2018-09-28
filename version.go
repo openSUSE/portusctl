@@ -91,7 +91,7 @@ func versionAction(ctx *cli.Context) error {
 	if len(ctx.Args()) != 0 {
 		return errors.New("you don't have to provide arguments for this command")
 	}
-	if err := setFlags(ctx); err != nil {
+	if err := setFlags(ctx, false); err != nil {
 		return err
 	}
 

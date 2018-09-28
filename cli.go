@@ -69,17 +69,22 @@ var globalConfig config
 
 // setFlags sets the global configuration with the values provided by the
 // flags. An error will be returned when one of the mandatory flags is not
-// provided.
-func setFlags(ctx *cli.Context) error {
+// provided (unless you want to skip the token and the server flags because you
+// are calling this from the `bootstrapCmd` method).
+func setFlags(ctx *cli.Context, bootstrap bool) error {
 	if globalConfig.user = ctx.GlobalString("user"); globalConfig.user == "" {
-		cli.ShowAppHelp(ctx)
-		fmt.Println("")
-		return errors.New("You have to set the user of the API")
+		if !bootstrap {
+			cli.ShowAppHelp(ctx)
+			fmt.Println("")
+			return errors.New("You have to set the user of the API")
+		}
 	}
 	if globalConfig.token = ctx.GlobalString("token"); globalConfig.token == "" {
-		cli.ShowAppHelp(ctx)
-		fmt.Println("")
-		return errors.New("You have to set the token of your user")
+		if !bootstrap {
+			cli.ShowAppHelp(ctx)
+			fmt.Println("")
+			return errors.New("You have to set the token of your user")
+		}
 	}
 	if globalConfig.server = ctx.GlobalString("server"); globalConfig.server == "" {
 		cli.ShowAppHelp(ctx)
@@ -225,7 +230,7 @@ func checkResource(resource string, ctx *cli.Context, action int) (*Resource, er
 // arguments and flags.
 func resourceDecorator(f func(*Resource, []string) error, action int) func(*cli.Context) error {
 	return func(ctx *cli.Context) error {
-		if err := setFlags(ctx); err != nil {
+		if err := setFlags(ctx, false); err != nil {
 			return err
 		}
 
