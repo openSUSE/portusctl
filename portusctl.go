@@ -67,6 +67,22 @@ func main() {
 Where <resource> is the resource that you want to create.`,
 		},
 		{
+			Name:   "bootstrap",
+			Usage:  "Bootstrap your Portus instance",
+			Action: bootstrapCmd,
+			ArgsUsage: `[arguments...]
+
+Creates the first administrator of your Portus instance and returns back an application token ready to be used.`,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:   "format, f",
+					Value:  "default",
+					Usage:  "The output format. Available options: default and json",
+					EnvVar: "PORTUSCTL_FORMAT",
+				},
+			},
+		},
+		{
 			Name:   "delete",
 			Usage:  "Delete the given resource",
 			Action: resourceDecorator(delete, deleteAction),

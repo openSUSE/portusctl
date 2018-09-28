@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
@@ -32,10 +33,13 @@ const (
 
 var requestTimeout = 15 * time.Second
 
-func generateBody(resource *Resource, args []string) ([]byte, error) {
+func generateBody(resource *Resource, args []string, retainValues bool) ([]byte, error) {
 	values, err := extractArguments(resource, args, false)
 	if err != nil {
 		return nil, err
+	}
+	if retainValues {
+		retainedValues = values
 	}
 
 	var b []byte
@@ -79,15 +83,25 @@ func request(method, path, query string, body []byte) (*http.Response, error) {
 	return res, nil
 }
 
+func parseBadRequest(response *http.Response) error {
+	target := make(map[string]map[string][]string)
+	defer response.Body.Close()
+	b, _ := ioutil.ReadAll(response.Body)
+
+	err := json.Unmarshal(b, &target)
+	if _, ok := err.(*json.UnmarshalTypeError); ok {
+		target := make(map[string]string)
+		json.Unmarshal(b, &target)
+		return errors.New(capitalize(target["message"]))
+	}
+	return messagesError(target["errors"])
+}
+
 func handleCode(response *http.Response) error {
 	code := response.StatusCode
 
 	if code == http.StatusBadRequest {
-		target := make(map[string]map[string][]string)
-		defer response.Body.Close()
-
-		json.NewDecoder(response.Body).Decode(&target)
-		return messagesError(target["errors"])
+		return parseBadRequest(response)
 	} else if code == http.StatusUnauthorized || code == http.StatusForbidden {
 		target := make(map[string]string)
 		defer response.Body.Close()
@@ -96,7 +110,13 @@ func handleCode(response *http.Response) error {
 	} else if code == http.StatusNotFound {
 		return errors.New("Resource not found")
 	} else if code == http.StatusMethodNotAllowed {
-		return errors.New("Action not allowed on given resource")
+		target := make(map[string]string)
+		defer response.Body.Close()
+		err := json.NewDecoder(response.Body).Decode(&target)
+		if err != nil {
+			return errors.New("Action not allowed on given resource")
+		}
+		return errors.New(capitalize(target["message"]))
 	} else if code == http.StatusUnprocessableEntity {
 		target := make(map[string]map[string][]string)
 		defer response.Body.Close()
@@ -107,7 +127,7 @@ func handleCode(response *http.Response) error {
 		target := make(map[string]string)
 		defer response.Body.Close()
 		json.NewDecoder(response.Body).Decode(&target)
-		return errors.New(target["error"])
+		return errors.New(capitalize(target["error"]))
 	}
 	return nil
 }

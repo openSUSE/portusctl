@@ -32,14 +32,15 @@ function __source_environment() {
     . "$BATS_TEST_DIRNAME/portus/tmp/config.sh"
 }
 
-# Setup the database for each test case.
+# Setup the database for each test case. You may optionally pass an extra
+# argument, that will be passed directly into the `runner.rb` script.
 function __setup_db() {
     ROOT_DIR="$( cd "$( dirname "$BATS_TEST_DIRNAME" )" && pwd )"
     PORTUSCTL="$ROOT_DIR/portusctl"
     docker exec \
            -e PORTUSCTL=$PORTUSCTL \
            portus_portus_1 \
-           portusctl exec rails r /srv/Portus/bin/runner.rb
+           portusctl exec rails r /srv/Portus/bin/runner.rb $1
 }
 
 # Wrapper for the main command. Use this instead of running the binary by
