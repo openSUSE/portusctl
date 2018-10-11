@@ -76,6 +76,8 @@ order to install it with zypper you need to perform the following commands:
 % zypper install portusctl
 ```
 
+It is required at least Go 1.8.x in order to install `portusctl`.
+
 ## Development
 
 You could build this project as any other Go binary with `go build`, but this is
