@@ -1,5 +1,5 @@
 #!/usr/bin/env bats -t
-# Copyright (C) 2018 Miquel Sabaté Solà <msabate@suse.com>
+# Copyright (C) 2018-2019 Miquel Sabaté Solà <msabate@suse.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

@@ -202,7 +202,7 @@ This project is based on work we did for the
 re-written from scratch, so the entire project is subject to the GPLv3 license:
 
 ```
-Copyright (C) 2017-2018 Miquel Sabaté Solà <msabate@suse.com>
+Copyright (C) 2017-2019 Miquel Sabaté Solà <msabate@suse.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

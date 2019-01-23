@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (C) 2017-2018 Miquel Sabaté Solà <msabate@suse.com>
+# Copyright (C) 2017-2019 Miquel Sabaté Solà <msabate@suse.com>
 #
 # This file has been adapted from openSUSE/umoci (see its
 # contrib/pkg/suse/make_spec.sh file). This file was created by:
