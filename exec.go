@@ -17,6 +17,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -34,20 +35,33 @@ const (
 	defaultPath = "/srv/Portus"
 )
 
-// rubyVersion returns the current ruby version.
-func rubyVersion(local string) (string, error) {
+// zeroedPatchLevelVersion returns the given version but with a zero as the
+// patch-level value.
+func zeroedPatchLevelVersion(raw string) (string, error) {
+	levels := strings.SplitN(raw, ".", 3)
+	if len(levels) != 3 {
+		return "", fmt.Errorf("expected to have at least three components, '%v' were given", len(levels))
+	}
+	levels[2] = "0"
+	return strings.Join(levels, "."), nil
+}
+
+// rubyAbiVersion returns the current ruby ABI version (the current version with
+// a zero value for the patch-level release).
+func rubyAbiVersion(local string) (string, error) {
 	path := filepath.Join(local, ".ruby-version")
 	contents, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
 
-	return strings.TrimSpace(string(contents)), nil
+	raw := strings.TrimSpace(string(contents))
+	return zeroedPatchLevelVersion(raw)
 }
 
 // Returns both the ruby version and the base path for bundled ruby gems.
 func pathBase(dir string) (string, string, error) {
-	ruby, err := rubyVersion(dir)
+	ruby, err := rubyAbiVersion(dir)
 	if err != nil {
 		return "", "", err
 	}
@@ -67,6 +81,9 @@ func vendorRubyPath(dir string) ([]string, error) {
 	lib, err := filepath.Glob(filepath.Join(base, "gems", "bundler*"))
 	if err != nil {
 		return nil, err
+	}
+	if len(lib) < 1 {
+		return nil, errors.New("could not found local bundler directory")
 	}
 
 	return []string{
